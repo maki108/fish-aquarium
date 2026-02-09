@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マイ水族館 - 石川さかな巡り</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-blue-900 min-h-screen flex flex-col items-center overflow-hidden">
+
+    <main class="relative w-full flex-grow ocean-bg overflow-hidden flex items-center justify-center">
+        <div class="absolute z-0 opacity-20 pointer-events-none">
+            <h2 class="text-5xl font-black text-white leading-tight text-center">石川<br>おさかな水族館</h2>
+        </div>
+
+        <div id="bubble-container" class="absolute inset-0 pointer-events-none"></div>
+
+        <div id="fish-tank" class="relative w-full h-full z-10">
+            </div>
+    </main>
+
+    <div id="talk-bubble" class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur px-6 py-3 rounded-2xl shadow-xl hidden z-50 transition-all">
+        <p id="fish-message" class="text-blue-900 font-bold text-sm"></p>
+    </div>
+
+    <nav class="w-full bg-white/90 backdrop-blur border-t border-gray-100 px-6 py-3 flex justify-around items-center z-50">
+        <a href="/" class="flex flex-col items-center text-gray-400 hover:text-cyan-600 transition-colors">
+            <span class="text-2xl">🎲</span><span class="text-[10px] font-bold">すごろく</span>
+        </a>
+        <a href="/encyclopedia" class="flex flex-col items-center text-gray-400 hover:text-cyan-600 transition-colors">
+            <span class="text-2xl">📕</span><span class="text-[10px] font-bold">図鑑</span>
+        </a>
+        <a href="/aquarium" class="flex flex-col items-center text-cyan-600">
+            <span class="text-2xl">🌊</span><span class="text-[10px] font-bold">水族館</span>
+        </a>
+    </nav>
+
+    <script>
+        // 1. サーバーから所持している魚のリストを取得
+        async function loadAquarium() {
+            try {
+                const response = await fetch('/api/collection');
+                const data = await response.json();
+                const tank = document.getElementById('fish-tank');
+                
+                // 所持している(is_owned: true)の魚だけを表示
+                const myFishes = data.filter(f => f.is_owned);
+
+                myFishes.forEach((fish, index) => {
+                    const fishEl = document.createElement('div');
+                    fishEl.className = 'fish-instance text-4xl';
+                    fishEl.innerHTML = '🐟'; // 本来はfish.idなどに応じて画像を変える
+                    
+                    // アニメーションのタイミングをランダムにずらす
+                    const duration = 15 + Math.random() * 10; // 15〜25秒
+                    const delay = Math.random() * -20; // 開始位置をバラけさせる
+                    const top = 20 + Math.random() * 60; // 画面の20%〜80%の高さ
+                    
+                    fishEl.style.setProperty('--duration', `${duration}s`);
+                    fishEl.style.setProperty('--delay', `${delay}s`);
+                    fishEl.style.top = `${top}%`;
+
+                    // クリックでおしゃべり
+                    fishEl.onclick = () => {
+                        const msg = document.getElementById('fish-message');
+                        const bubble = document.getElementById('talk-bubble');
+                        msg.innerText = `${fish.name}だ。石川の海は最高だよ！`;
+                        bubble.classList.remove('hidden');
+                        setTimeout(() => bubble.classList.add('hidden'), 3000);
+                    };
+
+                    tank.appendChild(fishEl);
+                });
+            } catch (e) {
+                console.error("水族館の読み込みに失敗しました", e);
+            }
+        }
+
+        // 2. 泡を生成する演出
+        function createBubbles() {
+            const container = document.getElementById('bubble-container');
+            for (let i = 0; i < 15; i++) {
+                const b = document.createElement('div');
+                b.className = 'bubble';
+                const size = 10 + Math.random() * 20;
+                b.style.width = `${size}px`;
+                b.style.height = `${size}px`;
+                b.style.left = `${Math.random() * 100}%`;
+                b.style.animationDelay = `${Math.random() * 10}s`;
+                container.appendChild(b);
+            }
+        }
+
+        window.onload = () => {
+            loadAquarium();
+            createBubbles();
+        };
+    </script>
+</body>
+</html>

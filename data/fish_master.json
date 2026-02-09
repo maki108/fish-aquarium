@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "name": "ノドグロ（アカムツ）",
+    "rarity": 3,
+    "image_path": "/static/images/nodoguro.png",
+    "details": {"biology": "白身のトロと呼ばれる高級魚。", "season": "通年（特に冬）"}
+  },
+  {
+    "id": 2,
+    "name": "天然能登寒ぶり",
+    "rarity": 3,
+    "image_path": "/static/images/buri.png",
+    "details": {"biology": "冬の能登を代表する王者。", "season": "12月〜2月"}
+  },
+  {
+    "id": 3,
+    "name": "甘エビ（ホッコクアカエビ）",
+    "rarity": 1,
+    "image_path": "/static/images/amaebi.png",
+    "details": {"biology": "石川県で最も親しまれているエビ。", "season": "9月〜6月"}
+  }
+]

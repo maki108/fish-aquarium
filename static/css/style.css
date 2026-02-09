@@ -1,0 +1,96 @@
+/* 全体共通設定 */
+body {
+    -webkit-tap-highlight-color: transparent; /* タップ時の青い枠を消す */
+    user-select: none; /* 誤操作によるテキスト選択を防止 */
+}
+
+/* --- すごろく画面 (index.html) 用 --- */
+
+/* 波模様の円形背景 */
+.wave-bg {
+    background-color: #e0f2fe;
+    /* デザイン案に合わせた水色の波線模様 */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='20' viewBox='0 0 100 20'%3E%3Cpath d='M0 10 Q 25 0 50 10 T 100 10' fill='none' stroke='%23bae6fd' stroke-width='2'/%3E%3C/svg%3E");
+}
+
+/* サイコロのバウンドアニメーション */
+.dice-animation {
+    animation: dice-bounce 0.5s infinite;
+}
+
+@keyframes dice-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+/* プレイヤーの駒（オレンジの丸）のパルスアニメーション */
+#player-piece {
+    animation: piece-pulse 2s infinite ease-in-out;
+    z-index: 30;
+}
+
+@keyframes piece-pulse {
+    0%, 100% { 
+        transform: translate(-50%, -50%) scale(1); 
+        box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.5); 
+    }
+    50% { 
+        transform: translate(-50%, -50%) scale(1.1); 
+        box-shadow: 0 0 0 12px rgba(249, 115, 22, 0); 
+    }
+}
+
+/* --- 追加ゲットセクション (回復ボタン) --- */
+.grid button {
+    transition: all 0.2s ease;
+}
+
+.grid button:active {
+    transform: scale(0.95);
+    filter: brightness(0.95);
+}
+
+/* アイコン背後の白い円の装飾 */
+.grid button div {
+    transition: transform 0.2s ease;
+}
+
+.grid button:hover div {
+    transform: scale(1.1);
+}
+
+/* --- 水族館画面 (aquarium.html) 用 --- */
+
+/* 魚が泳ぐアニメーション */
+@keyframes swim {
+    0% { transform: translateX(120vw) translateY(0); }
+    50% { transform: translateX(50vw) translateY(-20px); }
+    100% { transform: translateX(-120%) translateY(0); }
+}
+
+.fish-instance {
+    position: absolute;
+    cursor: pointer;
+    transition: transform 0.3s;
+    animation: swim var(--duration) linear infinite;
+    animation-delay: var(--delay);
+}
+
+/* 泡の上昇アニメーション */
+@keyframes bubble {
+    0% { transform: translateY(100vh); opacity: 0; }
+    50% { opacity: 0.5; }
+    100% { transform: translateY(-10vh); opacity: 0; }
+}
+
+.bubble {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    animation: bubble 10s infinite;
+}
+
+/* --- モーダル (共通) --- */
+#fish-modal {
+    backdrop-filter: blur(4px); /* 背景をぼかす演出 */
+}

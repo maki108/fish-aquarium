@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>石川さかな巡りすごろく</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-blue-50 min-h-screen flex flex-col items-center p-4 font-sans text-gray-800">
+
+    <header class="w-full max-w-md bg-white/80 backdrop-blur rounded-2xl shadow-sm p-4 mb-4 flex justify-between items-center">
+        <h1 class="text-lg font-bold text-blue-600 flex items-center">
+            <span class="mr-2">🌊</span>石川さかな巡り
+        </h1>
+        <div class="text-right">
+            <p id="collection-ratio" class="text-sm font-bold text-gray-700">0/0 種類</p>
+        </div>
+    </header>
+
+    <main class="w-full max-w-md bg-white rounded-[2.5rem] shadow-xl overflow-hidden p-6 text-center">
+        
+        <div class="relative w-72 h-72 mx-auto mb-10 wave-bg rounded-full border-4 border-white shadow-inner flex items-center justify-center">
+            <div class="text-center z-10 pointer-events-none">
+                <h2 class="text-2xl font-black text-blue-900 leading-tight">石川<br>おさかな</h2>
+            </div>
+
+            <div id="map-nodes" class="absolute inset-0"></div>
+
+            <div id="player-piece" class="absolute w-8 h-8 bg-orange-500 rounded-full border-4 border-white shadow-lg transition-all duration-500 z-30 flex items-center justify-center">
+                <div class="w-1.5 h-1.5 bg-black rounded-full"></div>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <h2 id="current-spot" class="text-2xl font-bold text-gray-800">読み込み中...</h2>
+            <div id="distance-info" class="text-blue-500 text-xs font-bold mt-1">次の港まであと -- マス</div>
+        </div>
+
+        <div class="bg-gray-50 rounded-3xl p-6 border border-gray-100">
+            <div id="dice-result" class="text-5xl mb-4 h-12 flex items-center justify-center">🎲</div>
+            <button id="roll-button" onclick="rollDice()" 
+                class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-4 rounded-2xl text-xl shadow-lg shadow-cyan-100 active:scale-95 transition-all disabled:bg-gray-300">
+                サイコロを振る
+            </button>
+            <div class="mt-2 text-[10px] text-gray-400 font-bold uppercase">
+                Remaining: <span id="dice-count">--</span>
+            </div>
+        </div>
+
+        <div class="mt-8">
+            <h3 class="text-left text-sm font-bold text-gray-700 mb-3 ml-1 text-xs">サイコロを追加でゲット</h3>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="recoverDice('x')" class="bg-blue-50 hover:bg-blue-100 p-4 rounded-2xl flex flex-col items-center justify-center transition-all active:scale-95 border border-blue-100 group">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center mb-2 shadow-sm group-hover:shadow">
+                        <span class="text-xl text-blue-500 font-bold">𝕏</span>
+                    </div>
+                    <span class="text-[10px] font-bold text-gray-800">ツイートする</span>
+                    <span class="text-[10px] font-bold text-cyan-600 mt-1">+1回</span>
+                </button>
+
+                <button onclick="recoverDice('site')" class="bg-cyan-50 hover:bg-cyan-100 p-4 rounded-2xl flex flex-col items-center justify-center transition-all active:scale-95 border border-cyan-100 group">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center mb-2 shadow-sm group-hover:shadow">
+                        <span class="text-xl">🌐</span>
+                    </div>
+                    <span class="text-[10px] font-bold text-gray-800 uppercase">石川県PRサイト</span>
+                    <span class="text-[10px] font-bold text-cyan-600 mt-1">+1回</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t border-gray-100 px-6 py-3 flex justify-around items-center z-50">
+        <a href="/" class="flex flex-col items-center text-cyan-600">
+            <span class="text-2xl">🎲</span><span class="text-[10px] font-bold">すごろく</span>
+        </a>
+        <a href="/encyclopedia" class="flex flex-col items-center text-gray-400">
+            <span class="text-2xl">📕</span><span class="text-[10px] font-bold">図鑑</span>
+        </a>
+        <a href="/aquarium" class="flex flex-col items-center text-gray-400">
+            <span class="text-2xl">🌊</span><span class="text-[10px] font-bold">水族館</span>
+        </a>
+    </nav>
+
+    <div id="fish-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
+        <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm text-center shadow-2xl">
+            <h3 class="text-2xl font-black text-gray-800 mb-6 text-cyan-600">魚をゲット！</h3>
+            <div id="fish-list" class="space-y-3 text-left"></div>
+            <button onclick="closeModal()" class="mt-8 w-full bg-gray-900 text-white py-4 rounded-2xl font-bold">冒険を続ける</button>
+        </div>
+    </div>
+
+    <script src="/static/js/game.js"></script>
+</body>
+</html>
