@@ -6,49 +6,73 @@
     <title>石川さかな図鑑 - 石川さかな巡り</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* 横スクロールバーを隠すユーティリティ */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
 </head>
 <body class="bg-blue-50 min-h-screen flex flex-col items-center p-4 font-sans text-gray-800">
 
-    <header class="w-full max-w-md bg-white/80 backdrop-blur rounded-2xl shadow-sm p-4 mb-4 flex justify-between items-center">
+    <header class="w-full max-w-md bg-white/80 backdrop-blur rounded-2xl shadow-sm p-4 mb-4 flex justify-between items-center sticky top-4 z-40">
         <h1 class="text-lg font-bold text-blue-600 flex items-center">
-            <span class="mr-2">📕</span>石川さかな図鑑
+            <span class="mr-2 text-2xl">📕</span>石川さかな図鑑
         </h1>
         <div class="text-right">
-            <p id="total-count" class="text-[10px] font-bold text-gray-400 uppercase">Loading collection...</p>
+            <p id="total-count" class="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Loading...</p>
         </div>
     </header>
 
-    <div class="w-full max-w-md mb-4 overflow-x-auto whitespace-nowrap pb-2 no-scrollbar">
+    <div class="w-full max-w-md mb-2 overflow-x-auto whitespace-nowrap px-1 pb-2 no-scrollbar z-30">
         <div class="flex gap-2" id="filter-buttons">
-            <button onclick="filterRarity('All', event)" class="filter-btn px-4 py-2 rounded-full bg-blue-600 text-white text-xs font-bold shadow-md transition-all active:scale-95">すべて</button>
-            <button onclick="filterRarity('普通', event)" class="filter-btn px-4 py-2 rounded-full bg-white text-gray-600 text-xs font-bold shadow-sm border border-gray-100 transition-all active:scale-95">普通</button>
-            <button onclick="filterRarity('珍しい', event)" class="filter-btn px-4 py-2 rounded-full bg-white text-gray-600 text-xs font-bold shadow-sm border border-gray-100 transition-all active:scale-95">珍しい</button>
-            <button onclick="filterRarity('レア', event)" class="filter-btn px-4 py-2 rounded-full bg-white text-gray-600 text-xs font-bold shadow-sm border border-gray-100 transition-all active:scale-95">レア</button>
-            <button onclick="filterRarity('伝説', event)" class="filter-btn px-4 py-2 rounded-full bg-white text-gray-600 text-xs font-bold shadow-sm border border-gray-100 transition-all active:scale-95">伝説</button>
+            <button onclick="filterRarity('All', event)" class="filter-btn px-5 py-2 rounded-2xl bg-cyan-600 text-white text-xs font-bold shadow-lg shadow-cyan-200 transition-all transform active:scale-95">
+                すべて
+            </button>
+            <button onclick="filterRarity('普通', event)" class="filter-btn px-5 py-2 rounded-2xl bg-white text-gray-500 text-xs font-bold shadow-sm border border-gray-100 transition-all transform active:scale-95 hover:bg-gray-50">
+                普通
+            </button>
+            <button onclick="filterRarity('珍しい', event)" class="filter-btn px-5 py-2 rounded-2xl bg-white text-gray-500 text-xs font-bold shadow-sm border border-gray-100 transition-all transform active:scale-95 hover:bg-gray-50">
+                珍しい
+            </button>
+            <button onclick="filterRarity('レア', event)" class="filter-btn px-5 py-2 rounded-2xl bg-white text-gray-500 text-xs font-bold shadow-sm border border-gray-100 transition-all transform active:scale-95 hover:bg-gray-50">
+                レア
+            </button>
+            <button onclick="filterRarity('伝説', event)" class="filter-btn px-5 py-2 rounded-2xl bg-white text-gray-500 text-xs font-bold shadow-sm border border-gray-100 transition-all transform active:scale-95 hover:bg-gray-50">
+                伝説
+            </button>
         </div>
     </div>
 
-    <main class="w-full max-w-md bg-white rounded-[2.5rem] shadow-xl overflow-hidden p-6 mb-24 min-h-[50vh]">
-        <div id="encyclopedia-list" class="grid grid-cols-2 gap-4">
+    <main class="w-full max-w-md bg-white rounded-[2.5rem] shadow-xl overflow-hidden p-6 mb-24 min-h-[60vh] relative z-10 border border-gray-100">
+        <div id="encyclopedia-list" class="grid grid-cols-2 gap-4 pb-8">
             </div>
     </main>
 
-    <div id="detail-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
-        <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm shadow-2xl relative overflow-y-auto max-h-[85vh]">
-            <button onclick="closeDetail()" class="absolute top-4 right-6 text-gray-400 text-3xl font-light hover:text-gray-600">&times;</button>
-            <div id="detail-content">
+    <div id="detail-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-6 z-[60] transition-opacity duration-300">
+        <div class="bg-white rounded-[2rem] p-6 w-full max-w-sm shadow-2xl relative overflow-hidden flex flex-col max-h-[80vh]">
+            
+            <button onclick="closeDetail()" class="absolute top-4 right-4 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-full w-8 h-8 flex items-center justify-center transition-colors z-10">
+                <span class="text-lg font-bold">&times;</span>
+            </button>
+
+            <div id="detail-content" class="overflow-y-auto no-scrollbar pt-2">
                 </div>
         </div>
     </div>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t border-gray-100 px-6 py-3 flex justify-around items-center z-50">
-        <a href="/" class="flex flex-col items-center text-gray-400">
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t border-gray-100 px-6 py-3 flex justify-around items-center z-50 max-w-md mx-auto rounded-t-2xl shadow-[0_-5px_15px_rgba(0,0,0,0.05)]">
+        <a href="/" class="flex flex-col items-center text-gray-400 hover:text-cyan-600 transition-colors">
             <span class="text-2xl">🎲</span><span class="text-[10px] font-bold">すごろく</span>
         </a>
         <a href="/encyclopedia" class="flex flex-col items-center text-cyan-600">
             <span class="text-2xl">📕</span><span class="text-[10px] font-bold">図鑑</span>
         </a>
-        <a href="/aquarium" class="flex flex-col items-center text-gray-400">
+        <a href="/aquarium" class="flex flex-col items-center text-gray-400 hover:text-cyan-600 transition-colors">
             <span class="text-2xl">🌊</span><span class="text-[10px] font-bold">水族館</span>
         </a>
     </nav>
