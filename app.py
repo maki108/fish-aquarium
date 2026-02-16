@@ -103,6 +103,7 @@ def roll_dice():
                         db.session.add(UserCollection(user_id=user.id, fish_id=f.id))
                     obtained_fishes.append({
                         "name": f.name, 
+                        "image": f.image_file,
                         "desc": f.details.get("biology", "石川の美味しい魚です。")
                     })
             break
@@ -142,6 +143,7 @@ def get_collection():
             "name": f.name if is_owned else "???",
             "is_owned": is_owned,
             "rarity": f.rarity,
+            "image": f.image_file,
             "price_range": f.price_range if is_owned else "???",
             "details": f.details if is_owned else {}
         })

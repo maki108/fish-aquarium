@@ -183,7 +183,9 @@ function showFishModal(fishes) {
     const list = document.getElementById('fish-list');
     list.innerHTML = fishes.map(f => `
         <div class="flex items-center bg-cyan-50 p-4 rounded-2xl border border-cyan-100 mb-2">
-            <div class="text-4xl mr-4">🐟</div>
+            <div class="w-16 h-16 mr-4 flex-shrink-0 bg-white rounded-full p-1 shadow-sm">
+                <img src="/static/images/fish/${f.image}" class="w-full h-full object-contain">
+            </div>
             <div>
                 <div class="font-bold text-slate-800">${f.name}</div>
                 <div class="text-xs text-slate-500">${f.desc}</div>

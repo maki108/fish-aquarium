@@ -61,11 +61,29 @@ body {
 
 /* --- 水族館画面 (aquarium.html) 用 --- */
 
-/* 魚が泳ぐアニメーション */
-@keyframes swim {
-    0% { transform: translateX(120vw) translateY(0); }
-    50% { transform: translateX(50vw) translateY(-20px); }
-    100% { transform: translateX(-120%) translateY(0); }
+/* 右から左へ泳ぐ（今まで通り） */
+@keyframes swimLeft {
+    from { left: 110%; }
+    to { left: -20%; }
+}
+
+/* 左から右へ泳ぐ */
+@keyframes swimRight {
+    from { left: -20%; }
+    to { left: 110%; }
+}
+
+/* その場でゆらゆら揺れる（海藻など） */
+@keyframes sway {
+    0% { transform: rotate(-3deg) scale(1); }
+    50% { transform: rotate(3deg) scale(1.05); }
+    100% { transform: rotate(-3deg) scale(1); }
+}
+
+/* 底でじっとしている（カニ・貝など） */
+@keyframes breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
 }
 
 .fish-instance {
@@ -88,6 +106,19 @@ body {
     background: rgba(255, 255, 255, 0.3);
     border-radius: 50%;
     animation: bubble 10s infinite;
+}
+
+/* --- ユーティリティ (図鑑の横スクロール用) --- */
+
+/* スクロールバーを非表示にする（Chrome, Safari, Opera） */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* スクロールバーを非表示にする（IE, Edge, Firefox） */
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
 }
 
 /* --- モーダル (共通) --- */

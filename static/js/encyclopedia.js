@@ -39,19 +39,18 @@ function renderList(fishes) {
                             fish.rarity === '珍しい' ? 'bg-green-400' : 'bg-blue-300';
         
         return `
-            <div onclick='showDetail(${JSON.stringify(fish).replace(/'/g, "\\'")})' 
-                 class="relative aspect-square rounded-3xl p-4 flex flex-col items-center justify-center transition-all active:scale-95 cursor-pointer shadow-sm
-                 ${fish.is_owned ? 'bg-white border border-blue-100' : 'bg-gray-100 opacity-60'}">
-                
-                <div class="absolute top-3 right-3 text-[7px] px-1.5 py-0.5 rounded-full font-bold text-white ${rarityColor}">
-                    ${fish.rarity}
+            <div onclick='showDetail(...)' class="...">
+                <div class="mb-2 w-20 h-20 flex items-center justify-center">
+                    ${fish.is_owned 
+                        ? `<img src="/static/images/fish/${fish.image}" class="w-full h-full object-contain drop-shadow-md">` 
+                        : '<span class="text-4xl">❓</span>'
+                    }
                 </div>
-
-                <div class="text-4xl mb-2">${fish.is_owned ? '🐟' : '❓'}</div>
+                
                 <div class="text-[10px] font-bold text-center text-blue-900">
                     ${fish.name}
                 </div>
-            </div>
+                </div>
         `;
     }).join('');
 }
@@ -92,7 +91,7 @@ function showDetail(fish) {
     
     content.innerHTML = `
         <div class="text-center mb-6">
-            <div class="text-6xl mb-4 animate-bounce">🐟</div>
+            <img src="/static/images/fish/${fish.image}" class="w-32 h-32 mx-auto object-contain mb-4 animate-bounce">
             <h3 class="text-2xl font-black text-blue-900">${fish.name}</h3>
             <div class="flex justify-center gap-2 mt-2">
                 <span class="px-3 py-1 bg-yellow-100 text-yellow-700 text-[10px] font-bold rounded-full">${fish.rarity}</span>

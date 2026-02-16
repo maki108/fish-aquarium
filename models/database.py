@@ -20,6 +20,7 @@ class User(db.Model):
 class Fish(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
+    image_file = db.Column(db.String(50), default="default.png")
     rarity = db.Column(db.String(20), default="普通") # 普通/珍しい/レア/伝説
     price_range = db.Column(db.String(50)) # 例: 1,000円〜3,000円
     details = db.Column(db.JSON) # 生態、旬、食文化、漁法を格納
