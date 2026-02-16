@@ -9,8 +9,6 @@ Flask: Webフレームワーク本体。
 
 Flask-SQLAlchemy: SQLiteを直感的に操作するためのORM。
 
-Flask-Login: ユーザー認証（1日2回の制限を管理する場合に推奨）。
-
 datetime: 「1日2回」の回数リセット判定に使用。
 
 Frontend (JS/CSS)
