@@ -1,174 +1,223 @@
 /**
- * 石川さかな巡りすごろく - 円形マップ(64マス) 状態同期対応版
+ * 石川さかな巡りすごろく - 石川県マップ対応版
  */
 
-// 1. 基本設定
+// 64マスの設定
 const TOTAL_STEPS = 64; 
-const RADIUS = 42; 
+let MAP_COORDINATES = [];
+
+// 主要スポット（港）の設定
 const MAIN_SPOTS = {
-    0: { name: "近江町市場", icon: "🏢" },
-    8: { name: "内灘", icon: "🌍" },
+    0: { name: "近江町市場", icon: "🦀" },
+    8: { name: "内灘", icon: "🏖️" },
     16: { name: "金沢港", icon: "🚢" },
-    24: { name: "羽咋港", icon: "🚢" },
-    32: { name: "七尾港", icon: "🚢" },
+    24: { name: "羽咋港", icon: "🛸" },
+    32: { name: "七尾港", icon: "🐟" },
     40: { name: "輪島港", icon: "🛍️" },
-    48: { name: "珠洲港", icon: "🚢" },
-    56: { name: "能登島", icon: "🌍" }
+    48: { name: "珠洲港", icon: "💡" },
+    56: { name: "能登島", icon: "🐬" }
 };
 
-/**
- * 2. 起動時の処理
- */
+// ページ読み込み時に実行される処理
 window.addEventListener('DOMContentLoaded', () => {
-    const container = document.getElementById('map-nodes');
-    if (!container) return;
+    // 1. 座標計算 (石川県のような縦長ルートを作る)
+    calculateCoordinates();
 
-    // マップの全ノードを描画
-    for (let i = 0; i < TOTAL_STEPS; i++) {
-        const angle = (i * (360 / TOTAL_STEPS) - 90) * (Math.PI / 180);
-        const x = 50 + RADIUS * Math.cos(angle);
-        const y = 50 + RADIUS * Math.sin(angle);
-        
-        const el = document.createElement('div');
-        el.style.left = `${x}%`;
-        el.style.top = `${y}%`;
-        el.style.transform = 'translate(-50%, -50%)';
-        
-        if (MAIN_SPOTS[i]) {
-            el.className = "absolute z-10";
-            el.innerHTML = `
-                <div class="relative flex flex-col items-center">
-                    <div class="w-10 h-10 bg-white rounded-full border-2 border-cyan-400 shadow-sm flex items-center justify-center">
-                        <span class="text-sm">${MAIN_SPOTS[i].icon}</span>
+    // 2. マップ上の「点」を描画
+    const container = document.getElementById('map-nodes');
+    if (container) {
+        for (let i = 0; i < TOTAL_STEPS; i++) {
+            const coord = MAP_COORDINATES[i];
+            const el = document.createElement('div');
+            // %指定で位置を決める
+            el.style.left = `${coord.x}%`;
+            el.style.top = `${coord.y}%`;
+            el.style.transform = 'translate(-50%, -50%)';
+            
+            if (MAIN_SPOTS[i]) {
+                // 港などの主要スポット（アイコン付き）
+                el.className = "absolute z-20";
+                el.innerHTML = `
+                    <div class="relative flex flex-col items-center group">
+                        <div class="w-8 h-8 bg-white/95 rounded-full border-2 border-cyan-500 shadow-md flex items-center justify-center text-xs">
+                            ${MAIN_SPOTS[i].icon}
+                        </div>
+                        <div class="absolute top-8 bg-white/90 px-1.5 py-0.5 rounded border border-cyan-200 text-[9px] font-bold text-cyan-900 whitespace-nowrap z-30 pointer-events-none">
+                            ${MAIN_SPOTS[i].name}
+                        </div>
                     </div>
-                    <div class="absolute -top-7 bg-white/90 px-2 py-0.5 rounded shadow-sm border border-blue-100 text-[9px] font-bold text-blue-800 whitespace-nowrap">
-                        ${MAIN_SPOTS[i].name}
-                    </div>
-                </div>
-            `;
-        } else {
-            el.className = "absolute w-1.5 h-1.5 bg-blue-300/40 rounded-full";
+                `;
+            } else {
+                // 通常のマス（小さな点）
+                el.className = "absolute w-1.5 h-1.5 bg-cyan-600/30 rounded-full z-10";
+            }
+            container.appendChild(el);
         }
-        container.appendChild(el);
     }
 
-    // マップ描画後にデータベースから現在地を取得して同期
+    // 3. サーバーから現在のプレイヤー位置を取得して表示
     initPlayerPosition();
 });
 
 /**
- * 3. 初期位置・状態の同期処理
+ * 座標計算ロジック
+ * 0(スタート/下) -> 左側を北上 -> 32(折り返し/上) -> 右側を南下 -> 64(ゴール/下)
  */
+function calculateCoordinates() {
+    MAP_COORDINATES = [];
+    for (let i = 0; i < TOTAL_STEPS; i++) {
+        let x, y;
+        
+        // --- 行き (金沢 -> 能登半島先端へ北上) ---
+        if (i <= 32) {
+            const progress = i / 32;
+            // Y座標: 下(85%)から上(10%)へ
+            y = 85 - (progress * 75); 
+            // X座標: 左側(30%)付近。sin波で少し海岸線っぽくうねらせる
+            x = 30 - Math.sin(progress * Math.PI * 1.5) * 10;
+        } 
+        // --- 帰り (能登半島内側 -> 金沢へ南下) ---
+        else {
+            const progress = (i - 32) / 32;
+            // Y座標: 上(10%)から下(85%)へ戻る
+            y = 10 + (progress * 75);
+            // X座標: 右側(60%)付近。
+            x = 60 + Math.sin(progress * Math.PI) * 10;
+        }
+        
+        MAP_COORDINATES.push({ x, y });
+    }
+}
+
+// プレイヤー情報の初期化
 async function initPlayerPosition() {
     try {
         const response = await fetch('/api/user-status');
         const data = await response.json();
-
-        // 駒の位置とUIを更新
-        updatePlayerUI(data.current_pos);
-        
-        document.getElementById('distance-info').innerText = `次の港まであと ${data.dist_to_next} マス`;
-        document.getElementById('collection-ratio').innerText = data.collection_status;
-        document.getElementById('dice-count').innerText = data.remaining_dice;
-        
-        const currentStep = data.current_pos % TOTAL_STEPS;
-        const spotName = MAIN_SPOTS[currentStep] ? MAIN_SPOTS[currentStep].name : "道中";
-        document.getElementById('current-spot').innerText = spotName;
-
+        updateGameScreen(data);
     } catch (e) {
-        console.error("初期データの取得に失敗しました", e);
+        console.error("初期データ取得エラー", e);
     }
 }
 
-/**
- * 4. 駒の表示を更新する共通関数
- */
-function updatePlayerUI(posId) {
-    const playerPiece = document.getElementById('player-piece');
-    const currentStep = posId % TOTAL_STEPS;
-    const angle = (currentStep * (360 / TOTAL_STEPS) - 90) * (Math.PI / 180);
-    const x = 50 + RADIUS * Math.cos(angle);
-    const y = 50 + RADIUS * Math.sin(angle);
-
-    playerPiece.style.left = `${x}%`;
-    playerPiece.style.top = `${y}%`;
-}
-
-/**
- * 5. サイコロを振るメインロジック
- */
+// サイコロを振るボタンの処理
 async function rollDice() {
     const button = document.getElementById('roll-button');
-    const diceDisplay = document.getElementById('dice-result');
-    const spotDisplay = document.getElementById('current-spot');
-    const distanceDisplay = document.getElementById('distance-info');
-    const ratioDisplay = document.getElementById('collection-ratio');
-    const diceCountDisplay = document.getElementById('dice-count');
+    const diceResult = document.getElementById('dice-result');
     
+    // 連打防止のためボタンを無効化
     button.disabled = true;
-    diceDisplay.classList.add('dice-animation');
+    
+    // 演出：回転アニメーション
+    diceResult.innerHTML = '<span class="text-5xl animate-spin inline-block">🎲</span>';
 
     try {
+        // サーバーにサイコロを振るリクエストを送る
         const response = await fetch('/api/roll-dice', { method: 'POST' });
         const data = await response.json();
 
-        if (!response.ok) {
+        if (data.error) {
             alert(data.error);
             button.disabled = false;
-            diceDisplay.classList.remove('dice-animation');
+            diceResult.innerText = "🎲";
             return;
         }
 
+        // 少し待って結果表示（演出のため）
         setTimeout(() => {
-            diceDisplay.classList.remove('dice-animation');
-            diceDisplay.innerText = getDiceEmoji(data.dice_val);
+            // サイコロの目をHTMLで生成して表示
+            diceResult.innerHTML = createDiceHtml(data.dice_val);
             
-            // 駒の位置を更新
-            updatePlayerUI(data.current_pos);
+            // 画面更新
+            updateGameScreen(data);
 
-            const currentStep = data.current_pos % TOTAL_STEPS;
-            const spotName = MAIN_SPOTS[currentStep] ? MAIN_SPOTS[currentStep].name : "道中";
-            spotDisplay.innerText = spotName;
-            distanceDisplay.innerText = `次の港まであと ${data.dist_to_next} マス`;
-            ratioDisplay.innerText = data.collection_status;
-            diceCountDisplay.innerText = data.remaining_dice;
-            
-            if (data.obtained_fishes.length > 0) {
-                showFishModal(data.obtained_fishes);
+            // 魚ゲット演出がある場合
+            if (data.obtained_fishes && data.obtained_fishes.length > 0) {
+                setTimeout(() => showFishModal(data.obtained_fishes), 500);
             }
 
             button.disabled = false;
-        }, 800);
+        }, 600);
 
     } catch (e) {
+        console.error(e);
         button.disabled = false;
-        diceDisplay.classList.remove('dice-animation');
+        diceResult.innerText = "Error";
     }
 }
 
-/**
- * 6. 回復・SNS連携
- */
+// 画面全体の更新処理（位置移動、テキスト更新など）
+function updateGameScreen(data) {
+    // テキスト更新
+    const currentStep = data.current_pos % TOTAL_STEPS;
+    const spotName = MAIN_SPOTS[currentStep] ? MAIN_SPOTS[currentStep].name : "移動中...";
+    
+    document.getElementById('current-spot').innerText = spotName;
+    document.getElementById('distance-info').innerText = `次の港まであと ${data.dist_to_next} マス`;
+    document.getElementById('collection-ratio').innerText = data.collection_status;
+    document.getElementById('dice-count').innerText = data.remaining_dice;
+
+    // 駒の移動
+    const player = document.getElementById('player-piece');
+    const coord = MAP_COORDINATES[currentStep];
+    
+    if (coord) {
+        player.style.display = 'flex'; // 初期は非表示なので表示する
+        player.style.left = `${coord.x}%`;
+        player.style.top = `${coord.y}%`;
+        player.classList.add('piece-active'); // パルスアニメーション付与
+    }
+}
+
+// サイコロの目を生成する関数（数字→ドット絵のHTML）
+function createDiceHtml(num) {
+    let dots = '';
+    for(let i=0; i<num; i++) {
+        dots += '<div class="dice-dot"></div>';
+    }
+    return `<div class="dice-face dice-${num}">${dots}</div>`;
+}
+
+// モーダル表示（魚ゲット画面）
+function showFishModal(fishes) {
+    const modal = document.getElementById('fish-modal');
+    const list = document.getElementById('fish-list');
+    
+    list.innerHTML = fishes.map(f => `
+        <div class="flex items-center bg-cyan-50 p-4 rounded-2xl border border-cyan-100 mb-2 shadow-sm">
+            <div class="text-4xl mr-4">🐟</div>
+            <div>
+                <div class="font-bold text-gray-800 text-lg">${f.name}</div>
+                <div class="text-xs text-gray-500 mt-1">${f.desc}</div>
+            </div>
+        </div>
+    `).join('');
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+// モーダルを閉じる
+function closeModal() {
+    const modal = document.getElementById('fish-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+// 回復処理（API呼び出しのみ）
 async function recoverDice(type) {
     try {
         const response = await fetch('/api/recovery', { method: 'POST' });
         const data = await response.json();
-        
         if (data.success) {
             document.getElementById('dice-count').innerText = data.new_count;
-            
             if (type === 'x') {
-                const ratio = document.getElementById('collection-ratio').innerText;
-                const tweetText = `石川おさかなすごろくで遊んでいます！現在【${ratio}】の魚を獲得！石川県の魚を集めて図鑑を完成させよう 🐟`;
-                const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&hashtags=石川おさかなすごろく`;
-                window.open(url, '_blank');
+                window.open('https://twitter.com/intent/tweet?text=石川さかな巡りすごろくで遊んでます！&hashtags=石川県', '_blank');
             } else if (type === 'site') {
-                window.open('https://www.hot-ishikawa.jp/index.html', '_blank');
+                window.open('https://www.hot-ishikawa.jp/', '_blank');
             }
         }
-    } catch (e) {
-        alert("回復に失敗しました");
-    }
+    } catch(e) { console.error(e); }
 }
 
 /**

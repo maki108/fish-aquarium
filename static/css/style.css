@@ -1,43 +1,101 @@
-/* 全体共通設定 */
+/* 基本設定 */
 body {
-    -webkit-tap-highlight-color: transparent; /* タップ時の青い枠を消す */
-    user-select: none; /* 誤操作によるテキスト選択を防止 */
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
-/* --- すごろく画面 (index.html) 用 --- */
-
-/* 波模様の円形背景 */
-.wave-bg {
-    background-color: #e0f2fe;
-    /* デザイン案に合わせた水色の波線模様 */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='20' viewBox='0 0 100 20'%3E%3Cpath d='M0 10 Q 25 0 50 10 T 100 10' fill='none' stroke='%23bae6fd' stroke-width='2'/%3E%3C/svg%3E");
+/* =========================================
+   マップエリアの設定
+   ========================================= */
+.ishikawa-map-container {
+    width: 100%;
+    height: 500px; /* 地図の縦横比に合わせて調整してください */
+    
+    background-color: #e0f7fa; /* 海の色（背景色） */
+    
+    background-image: url('../images/map_ishikawa.png');
+    background-size: contain;   /* 画像全体が収まるように表示 */
+    background-repeat: no-repeat;
+    background-position: center;
+    
+    border: 4px solid #fff;
 }
 
-/* サイコロのバウンドアニメーション */
-.dice-animation {
-    animation: dice-bounce 0.5s infinite;
+/* =========================================
+   オリジナルサイコロのデザイン
+   ========================================= */
+/* サイコロの箱 */
+.dice-face {
+    width: 64px;
+    height: 64px;
+    background-color: white;
+    border-radius: 12px;
+    border: 3px solid #06b6d4; /* 水色の枠線 */
+    display: grid;
+    grid-template: repeat(3, 1fr) / repeat(3, 1fr); /* 3x3のマス目を作る */
+    padding: 6px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    
+    /* 出現時のポヨンとしたアニメーション */
+    animation: dice-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-@keyframes dice-bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-15px); }
+@keyframes dice-pop {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
 }
 
-/* プレイヤーの駒（オレンジの丸）のパルスアニメーション */
+/* サイコロの点（ドット） */
+.dice-dot {
+    background-color: #0891b2; /* 濃い水色 */
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    align-self: center;
+    justify-self: center;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* サイコロの目の配置パターン */
+/* 1の目 */
+.dice-1 { grid-template-areas: ". . ." ". a ." ". . ."; }
+.dice-1 .dice-dot:nth-child(1) { grid-area: a; }
+
+/* 2の目 */
+.dice-2 { grid-template-areas: "a . ." ". . ." ". . b"; }
+.dice-2 .dice-dot:nth-child(1) { grid-area: a; } .dice-2 .dice-dot:nth-child(2) { grid-area: b; }
+
+/* 3の目 */
+.dice-3 { grid-template-areas: "a . ." ". b ." ". . c"; }
+.dice-3 .dice-dot:nth-child(1) { grid-area: a; } .dice-3 .dice-dot:nth-child(2) { grid-area: b; } .dice-3 .dice-dot:nth-child(3) { grid-area: c; }
+
+/* 4の目 */
+.dice-4 { grid-template-areas: "a . b" ". . ." "c . d"; }
+.dice-4 .dice-dot:nth-child(1) { grid-area: a; } .dice-4 .dice-dot:nth-child(2) { grid-area: b; } .dice-4 .dice-dot:nth-child(3) { grid-area: c; } .dice-4 .dice-dot:nth-child(4) { grid-area: d; }
+
+/* 5の目 */
+.dice-5 { grid-template-areas: "a . b" ". c ." "d . e"; }
+.dice-5 .dice-dot:nth-child(1) { grid-area: a; } .dice-5 .dice-dot:nth-child(2) { grid-area: b; } .dice-5 .dice-dot:nth-child(3) { grid-area: c; } .dice-5 .dice-dot:nth-child(4) { grid-area: d; } .dice-5 .dice-dot:nth-child(5) { grid-area: e; }
+
+/* 6の目 */
+.dice-6 { grid-template-areas: "a . b" "c . d" "e . f"; }
+.dice-6 .dice-dot:nth-child(1) { grid-area: a; } .dice-6 .dice-dot:nth-child(2) { grid-area: b; } .dice-6 .dice-dot:nth-child(3) { grid-area: c; } .dice-6 .dice-dot:nth-child(4) { grid-area: d; } .dice-6 .dice-dot:nth-child(5) { grid-area: e; } .dice-6 .dice-dot:nth-child(6) { grid-area: f; }
+
+/* =========================================
+   アニメーション関連
+   ========================================= */
+/* プレイヤーの駒の移動をなめらかに */
 #player-piece {
-    animation: piece-pulse 2s infinite ease-in-out;
-    z-index: 30;
+    transition: left 0.5s ease-in-out, top 0.5s ease-in-out;
 }
 
+/* 待機中の点滅アニメーション */
 @keyframes piece-pulse {
-    0%, 100% { 
-        transform: translate(-50%, -50%) scale(1); 
-        box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.5); 
-    }
-    50% { 
-        transform: translate(-50%, -50%) scale(1.1); 
-        box-shadow: 0 0 0 12px rgba(249, 115, 22, 0); 
-    }
+    0%, 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.5); }
+    50% { transform: translate(-50%, -50%) scale(1.1); box-shadow: 0 0 0 10px rgba(249, 115, 22, 0); }
+}
+.piece-active {
+    animation: piece-pulse 2s infinite;
 }
 
 /* --- 追加ゲットセクション (回復ボタン) --- */
@@ -85,13 +143,12 @@ body {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.02); }
 }
-
 .fish-instance {
     position: absolute;
     cursor: pointer;
-    transition: transform 0.3s;
     animation: swim var(--duration) linear infinite;
     animation-delay: var(--delay);
+    font-size: 2rem;
 }
 
 /* 泡の上昇アニメーション */
