@@ -65,29 +65,48 @@ window.addEventListener('DOMContentLoaded', () => {
  */
 function calculateCoordinates() {
     MAP_COORDINATES = [];
+    
+    const ANCHORS = {
+        0:  { x: 41, y: 61 }, // 近江町市場
+        8:  { x: 46, y: 52 }, // 内灘
+        16: { x: 45, y: 63 }, // 金沢港
+        24: { x: 47, y: 34 }, // 羽咋港
+        32: { x: 55, y: 35 }, // 七尾港
+        40: { x: 52, y: 15 }, // 輪島港
+        48: { x: 67, y: 9 },  // 珠洲港
+        56: { x: 62, y: 29 }, // 能登島
+        64: { x: 41, y: 61 }  // ゴール (近江町市場に戻る)
+    };
+
     for (let i = 0; i < TOTAL_STEPS; i++) {
-        let x, y;
+        // 現在の区間の開始港と終了港を特定（8マスごと）
+        let startIndex = Math.floor(i / 8) * 8;
+        let endIndex = startIndex + 8;
         
-        // --- 行き (金沢 -> 能登半島先端へ北上) ---
-        if (i <= 32) {
-            const progress = i / 32;
-            // Y座標: 下(85%)から上(10%)へ
-            y = 85 - (progress * 75); 
-            // X座標: 左側(30%)付近。sin波で少し海岸線っぽくうねらせる
-            x = 30 - Math.sin(progress * Math.PI * 1.5) * 10;
-        } 
-        // --- 帰り (能登半島内側 -> 金沢へ南下) ---
-        else {
-            const progress = (i - 32) / 32;
-            // Y座標: 上(10%)から下(85%)へ戻る
-            y = 10 + (progress * 75);
-            // X座標: 右側(60%)付近。
-            x = 60 + Math.sin(progress * Math.PI) * 10;
+        let start = ANCHORS[startIndex];
+        let end = ANCHORS[endIndex];
+        
+        // 区間内の進行度 (0.0 〜 1.0)
+        let progress = (i % 8) / 8;
+        
+        // 港と港の間を直線で結ぶ
+        let dx = end.x - start.x;
+        let dy = end.y - start.y;
+        
+        let x = start.x + dx * progress;
+        let y = start.y + dy * progress;
+
+        // 行き来のルートが重ならないよう、少しだけ線をカーブさせる（外側に膨らませる）
+        let curveOffset = Math.sin(progress * Math.PI) * 2.5; 
+        
+        if (startIndex === 0 || startIndex === 8) {
+            x -= curveOffset; // 左側に膨らむ
+        } else if (startIndex >= 32) {
+            x += curveOffset; // 右側（海側）に膨らむ
         }
-        
+
         MAP_COORDINATES.push({ x, y });
     }
-}
 
 // プレイヤー情報の初期化
 async function initPlayerPosition() {
