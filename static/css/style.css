@@ -9,17 +9,25 @@ body {
    ========================================= */
 .ishikawa-map-container {
     width: 100%;
-    aspect-ratio: 4 / 3;
+    padding-top: 75%;
     
     background-color: #fff;
-    
     background-image: url('../images/map_ishikawa.png');
     background-size: 100% 100%;
     background-repeat: no-repeat;
-    background-position: center;
-    
-    border: 4px solid #fff;
+    background-position: top center;
+    border: 2px solid #e2e8f0;
+    border-radius: 1.5rem;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
 }
+
+/* マス目を配置する透明なシート */
+#map-nodes {
+    position: absolute;
+    top: 0; left: 0; 
+    width: 100%; height: 100%;
+}
+    
 
 /* =========================================
    オリジナルサイコロのデザイン
