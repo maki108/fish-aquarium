@@ -9,12 +9,12 @@ body {
    ========================================= */
 .ishikawa-map-container {
     width: 100%;
-    height: 500px; /* 地図の縦横比に合わせて調整してください */
+    aspect-ratio: 4 / 3;
     
-    background-color: #e0f7fa; /* 海の色（背景色） */
+    background-color: #fff;
     
     background-image: url('../images/map_ishikawa.png');
-    background-size: contain;   /* 画像全体が収まるように表示 */
+    background-size: 100% 100%;
     background-repeat: no-repeat;
     background-position: center;
     
