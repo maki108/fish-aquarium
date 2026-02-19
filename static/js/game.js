@@ -240,31 +240,6 @@ async function recoverDice(type) {
     } catch(e) { console.error(e); }
 }
 
-/**
- * 7. ヘルパー・モーダル制御
- */
-function getDiceEmoji(val) {
-    return {1:"⚀", 2:"⚁", 3:"⚂", 4:"⚃", 5:"⚄", 6:"⚅"}[val] || "🎲";
-}
-
-function showFishModal(fishes) {
-    const modal = document.getElementById('fish-modal');
-    const list = document.getElementById('fish-list');
-    list.innerHTML = fishes.map(f => `
-        <div class="flex items-center bg-cyan-50 p-4 rounded-2xl border border-cyan-100 mb-2">
-            <div class="w-16 h-16 mr-4 flex-shrink-0 bg-white rounded-full p-1 shadow-sm">
-                <img src="/static/images/fish/${f.image}" class="w-full h-full object-contain">
-            </div>
-            <div>
-                <div class="font-bold text-slate-800">${f.name}</div>
-                <div class="text-xs text-slate-500">${f.desc}</div>
-            </div>
-        </div>
-    `).join('');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
 function closeModal() {
     const modal = document.getElementById('fish-modal');
     modal.classList.add('hidden');
