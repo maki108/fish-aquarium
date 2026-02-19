@@ -107,6 +107,7 @@ function calculateCoordinates() {
 
         MAP_COORDINATES.push({ x, y });
     }
+}
 
 // プレイヤー情報の初期化
 async function initPlayerPosition() {
