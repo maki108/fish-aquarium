@@ -57,10 +57,6 @@ window.addEventListener('DOMContentLoaded', () => {
     initPlayerPosition();
 });
 
-    // 3. サーバーから現在のプレイヤー位置を取得して表示
-    initPlayerPosition();
-});
-
 /**
  * 座標計算ロジック
  * 0(スタート/下) -> 左側を北上 -> 32(折り返し/上) -> 右側を南下 -> 64(ゴール/下)
