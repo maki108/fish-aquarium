@@ -39,21 +39,23 @@ window.addEventListener('DOMContentLoaded', () => {
                 el.className = "absolute z-20";
                 el.innerHTML = `
                     <div class="relative flex flex-col items-center group">
-                        <div class="w-8 h-8 bg-white/95 rounded-full border-2 border-cyan-500 shadow-md flex items-center justify-center text-xs">
+                        <div class="w-8 h-8 bg-white/95 rounded-full border-2 border-cyan-500 shadow-md flex items-center justify-center text-[10px]">
                             ${MAIN_SPOTS[i].icon}
                         </div>
-                        <div class="absolute top-8 bg-white/90 px-1.5 py-0.5 rounded border border-cyan-200 text-[9px] font-bold text-cyan-900 whitespace-nowrap z-30 pointer-events-none">
+                        <div class="absolute top-7 bg-white/90 px-1 py-0.5 rounded border border-cyan-200 text-[8px] font-bold text-cyan-900 whitespace-nowrap z-30 shadow-sm">
                             ${MAIN_SPOTS[i].name}
                         </div>
                     </div>
                 `;
             } else {
                 // 通常のマス（小さな点）
-                el.className = "absolute w-1.5 h-1.5 bg-cyan-600/30 rounded-full z-10";
+                el.className = "absolute w-1 h-1 bg-cyan-600/50 rounded-full z-10 shadow-sm";
             }
             container.appendChild(el);
         }
     }
+    initPlayerPosition();
+});
 
     // 3. サーバーから現在のプレイヤー位置を取得して表示
     initPlayerPosition();
@@ -67,44 +69,43 @@ function calculateCoordinates() {
     MAP_COORDINATES = [];
     
     const ANCHORS = {
-        0:  { x: 41, y: 61 }, // 近江町市場
-        8:  { x: 46, y: 52 }, // 内灘
-        16: { x: 45, y: 63 }, // 金沢港
-        24: { x: 47, y: 34 }, // 羽咋港
-        32: { x: 55, y: 35 }, // 七尾港
-        40: { x: 52, y: 15 }, // 輪島港
-        48: { x: 67, y: 9 },  // 珠洲港
+        0:  { x: 42, y: 62 }, // 近江町市場
+        8:  { x: 47, y: 53 }, // 内灘
+        16: { x: 46, y: 64 }, // 金沢港
+        24: { x: 48, y: 34 }, // 羽咋港
+        32: { x: 56, y: 36 }, // 七尾港
+        40: { x: 53, y: 15 }, // 輪島港
+        48: { x: 69, y: 10 }, // 珠洲港
         56: { x: 62, y: 29 }, // 能登島
-        64: { x: 41, y: 61 }  // ゴール (近江町市場に戻る)
+        64: { x: 42, y: 62 }  // ゴール
+    };
+
+    // 線をどちらに膨らませるか（コントロールポイント）
+    const CONTROL_POINTS = {
+        0:  { x: 40, y: 57 }, // 0->8: 少し左に膨らむ
+        8:  { x: 35, y: 58 }, // 8->16: 左の海側へ大きく迂回（交差防止）
+        16: { x: 30, y: 49 }, // 16->24: 左の海側へ大きく迂回（交差防止）
+        24: { x: 52, y: 32 }, // 24->32: 少し上に膨らむ
+        32: { x: 51, y: 25 }, // 32->40: 陸側を左にカーブ
+        40: { x: 61, y: 10 }, // 40->48: 海岸線に沿って上へ
+        48: { x: 68, y: 20 }, // 48->56: 右に膨らむ
+        56: { x: 72, y: 45 }  // 56->64: 富山湾側（右側）を通って大きく南下
     };
 
     for (let i = 0; i < TOTAL_STEPS; i++) {
-        // 現在の区間の開始港と終了港を特定（8マスごと）
         let startIndex = Math.floor(i / 8) * 8;
         let endIndex = startIndex + 8;
         
-        let start = ANCHORS[startIndex];
-        let end = ANCHORS[endIndex];
+        let P0 = ANCHORS[startIndex];
+        let P2 = ANCHORS[endIndex];
+        let P1 = CONTROL_POINTS[startIndex];
         
-        // 区間内の進行度 (0.0 〜 1.0)
-        let progress = (i % 8) / 8;
+        // 0.0 〜 1.0 の進行度
+        let t = (i % 8) / 8;
         
-        // 港と港の間を直線で結ぶ
-        let dx = end.x - start.x;
-        let dy = end.y - start.y;
+        let x = Math.pow(1-t, 2) * P0.x + 2 * (1-t) * t * P1.x + Math.pow(t, 2) * P2.x;
+        let y = Math.pow(1-t, 2) * P0.y + 2 * (1-t) * t * P1.y + Math.pow(t, 2) * P2.y;
         
-        let x = start.x + dx * progress;
-        let y = start.y + dy * progress;
-
-        // 行き来のルートが重ならないよう、少しだけ線をカーブさせる（外側に膨らませる）
-        let curveOffset = Math.sin(progress * Math.PI) * 2.5; 
-        
-        if (startIndex === 0 || startIndex === 8) {
-            x -= curveOffset; // 左側に膨らむ
-        } else if (startIndex >= 32) {
-            x += curveOffset; // 右側（海側）に膨らむ
-        }
-
         MAP_COORDINATES.push({ x, y });
     }
 }
