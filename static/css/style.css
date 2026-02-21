@@ -8,43 +8,40 @@ body {
    マップエリアの設定
    ========================================= */
 .ishikawa-map-container {
+    position: relative;
     width: 100%;
-    padding-top: 75%;
+    padding-top: 75%; /* 画像の比率(横4:縦3)に合わせる */
     
     background-color: #fff;
     background-image: url('../images/map_ishikawa.png');
     background-size: 100% 100%;
-    background-repeat: no-repeat;
     background-position: top center;
+    background-repeat: no-repeat;
+    
     border: 2px solid #e2e8f0;
     border-radius: 1.5rem;
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
 }
 
-/* マス目を配置する透明なシート */
 #map-nodes {
     position: absolute;
     top: 0; left: 0; 
     width: 100%; height: 100%;
 }
-    
 
 /* =========================================
    オリジナルサイコロのデザイン
    ========================================= */
-/* サイコロの箱 */
 .dice-face {
     width: 64px;
     height: 64px;
     background-color: white;
     border-radius: 12px;
-    border: 3px solid #06b6d4; /* 水色の枠線 */
+    border: 3px solid #06b6d4;
     display: grid;
-    grid-template: repeat(3, 1fr) / repeat(3, 1fr); /* 3x3のマス目を作る */
+    grid-template: repeat(3, 1fr) / repeat(3, 1fr);
     padding: 6px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    
-    /* 出現時のポヨンとしたアニメーション */
     animation: dice-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -53,9 +50,8 @@ body {
     100% { transform: scale(1); opacity: 1; }
 }
 
-/* サイコロの点（ドット） */
 .dice-dot {
-    background-color: #0891b2; /* 濃い水色 */
+    background-color: #0891b2;
     width: 10px;
     height: 10px;
     border-radius: 50%;
@@ -64,40 +60,28 @@ body {
     box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
 }
 
-/* サイコロの目の配置パターン */
-/* 1の目 */
 .dice-1 { grid-template-areas: ". . ." ". a ." ". . ."; }
 .dice-1 .dice-dot:nth-child(1) { grid-area: a; }
 
-/* 2の目 */
 .dice-2 { grid-template-areas: "a . ." ". . ." ". . b"; }
 .dice-2 .dice-dot:nth-child(1) { grid-area: a; } .dice-2 .dice-dot:nth-child(2) { grid-area: b; }
 
-/* 3の目 */
 .dice-3 { grid-template-areas: "a . ." ". b ." ". . c"; }
 .dice-3 .dice-dot:nth-child(1) { grid-area: a; } .dice-3 .dice-dot:nth-child(2) { grid-area: b; } .dice-3 .dice-dot:nth-child(3) { grid-area: c; }
 
-/* 4の目 */
 .dice-4 { grid-template-areas: "a . b" ". . ." "c . d"; }
 .dice-4 .dice-dot:nth-child(1) { grid-area: a; } .dice-4 .dice-dot:nth-child(2) { grid-area: b; } .dice-4 .dice-dot:nth-child(3) { grid-area: c; } .dice-4 .dice-dot:nth-child(4) { grid-area: d; }
 
-/* 5の目 */
 .dice-5 { grid-template-areas: "a . b" ". c ." "d . e"; }
 .dice-5 .dice-dot:nth-child(1) { grid-area: a; } .dice-5 .dice-dot:nth-child(2) { grid-area: b; } .dice-5 .dice-dot:nth-child(3) { grid-area: c; } .dice-5 .dice-dot:nth-child(4) { grid-area: d; } .dice-5 .dice-dot:nth-child(5) { grid-area: e; }
 
-/* 6の目 */
 .dice-6 { grid-template-areas: "a . b" "c . d" "e . f"; }
 .dice-6 .dice-dot:nth-child(1) { grid-area: a; } .dice-6 .dice-dot:nth-child(2) { grid-area: b; } .dice-6 .dice-dot:nth-child(3) { grid-area: c; } .dice-6 .dice-dot:nth-child(4) { grid-area: d; } .dice-6 .dice-dot:nth-child(5) { grid-area: e; } .dice-6 .dice-dot:nth-child(6) { grid-area: f; }
 
-/* =========================================
-   アニメーション関連
-   ========================================= */
-/* プレイヤーの駒の移動をなめらかに */
+/* プレイヤー駒のアニメーション */
 #player-piece {
     transition: left 0.5s ease-in-out, top 0.5s ease-in-out;
 }
-
-/* 待機中の点滅アニメーション */
 @keyframes piece-pulse {
     0%, 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.5); }
     50% { transform: translate(-50%, -50%) scale(1.1); box-shadow: 0 0 0 10px rgba(249, 115, 22, 0); }
@@ -106,119 +90,54 @@ body {
     animation: piece-pulse 2s infinite;
 }
 
-/* --- 追加ゲットセクション (回復ボタン) --- */
-.grid button {
-    transition: all 0.2s ease;
-}
-
-.grid button:active {
-    transform: scale(0.95);
-    filter: brightness(0.95);
-}
-
-/* アイコン背後の白い円の装飾 */
-.grid button div {
-    transition: transform 0.2s ease;
-}
-
-.grid button:hover div {
-    transform: scale(1.1);
-}
-
-/* --- 水族館画面 (aquarium.html) 用 --- */
-
-/* 右から左へ泳ぐ（今まで通り） */
-@keyframes swimLeft {
-    from { left: 110%; }
-    to { left: -20%; }
-}
-
-/* 左から右へ泳ぐ */
-@keyframes swimRight {
-    from { left: -20%; }
-    to { left: 110%; }
-}
-
-/* その場でゆらゆら揺れる（海藻など） */
-@keyframes sway {
-    0% { transform: rotate(-3deg) scale(1); }
-    50% { transform: rotate(3deg) scale(1.05); }
-    100% { transform: rotate(-3deg) scale(1); }
-}
-
-/* 底でじっとしている（カニ・貝など） */
-@keyframes breathe {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-}
-.fish-instance {
-    position: absolute;
-    cursor: pointer;
-    animation: swim var(--duration) linear infinite;
-    animation-delay: var(--delay);
-    font-size: 2rem;
-}
-
-/* 泡の上昇アニメーション */
-@keyframes bubble {
-    0% { transform: translateY(100vh); opacity: 0; }
-    50% { opacity: 0.5; }
-    100% { transform: translateY(-10vh); opacity: 0; }
-}
-
-.bubble {
-    position: absolute;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    animation: bubble 10s infinite;
-}
-
-/* --- ユーティリティ (図鑑の横スクロール用) --- */
-
-/* スクロールバーを非表示にする（Chrome, Safari, Opera） */
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-
-/* スクロールバーを非表示にする（IE, Edge, Firefox） */
-.no-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-}
-
-/* --- モーダル (共通) --- */
-#fish-modal {
-    backdrop-filter: blur(4px); /* 背景をぼかす演出 */
-}
-
 /* =========================================
    釣り（GET）演出用アニメーション
    ========================================= */
+/* 魚が飛び出してくる */
 @keyframes fish-pop {
-    0% { 
-        transform: scale(0.1) translateY(150px) rotate(-45deg); 
-        opacity: 0; 
-    }
-    60% { 
-        transform: scale(1.1) translateY(-20px) rotate(10deg); 
-        opacity: 1; 
-    }
-    100% { 
-        transform: scale(1) translateY(0) rotate(0); 
-        opacity: 1; 
-    }
+    0% { transform: scale(0.1) translateY(150px) rotate(-45deg); opacity: 0; }
+    60% { transform: scale(1.1) translateY(-20px) rotate(10deg); opacity: 1; }
+    100% { transform: scale(1) translateY(0) rotate(0); opacity: 1; }
 }
-
 .fish-pop-animation {
     animation: fish-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
-/* ヒット時の文字の震え */
-@keyframes shake-hard {
-    0%, 100% { transform: translateX(0) scale(1.5); }
-    25% { transform: translateX(-5px) scale(1.5) rotate(-5deg); }
-    75% { transform: translateX(5px) scale(1.5) rotate(5deg); }
+/* 1. 釣り糸がスーッと落ちる */
+@keyframes dropLine {
+    0% { height: 0; }
+    100% { height: 120px; }
 }
-.hit-animation {
-    animation: shake-hard 0.1s infinite;
+.animate-drop-line {
+    animation: dropLine 0.5s ease-out forwards;
 }
+
+/* 2. ウキがポチャっと落ちて揺れる */
+@keyframes bobberFloat {
+    0% { opacity: 0; transform: translateY(-20px); }
+    10% { opacity: 1; transform: translateY(0); }
+    50% { opacity: 1; transform: translateY(5px) rotate(3deg); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+.animate-bobber {
+    animation: bobberFloat 2s ease-in-out infinite;
+    animation-delay: 0.5s; /* 糸が伸びた後に表示 */
+    animation-fill-mode: forwards;
+}
+
+/* 3. ヒット！ ウキが激しく沈み込む */
+@keyframes bobberHit {
+    0%, 100% { transform: translateY(0); }
+    25% { transform: translateY(30px) rotate(-15deg); }
+    50% { transform: translateY(-5px); }
+    75% { transform: translateY(20px) rotate(10deg); }
+}
+.bobber-hit-animation {
+    animation: bobberHit 0.2s infinite !important; 
+}
+
+/* =========================================
+   その他ユーティリティ
+   ========================================= */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

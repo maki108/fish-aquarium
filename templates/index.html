@@ -21,13 +21,12 @@
     <main class="w-full max-w-md bg-white rounded-[2.5rem] shadow-xl overflow-hidden p-6 text-center relative z-10">
         
         <div class="ishikawa-map-container relative mx-auto mb-6 shadow-inner rounded-3xl overflow-hidden">
-            
             <div id="map-nodes" class="absolute inset-0"></div>
-
             <div id="player-piece" class="absolute w-6 h-6 bg-orange-500 rounded-full border-2 border-white shadow-lg transition-all duration-500 z-30 flex items-center justify-center" style="display: none;">
                 <div class="w-1.5 h-1.5 bg-black rounded-full"></div>
             </div>
         </div>
+        
         <div class="mb-6">
             <h2 id="current-spot" class="text-2xl font-bold text-gray-800">読み込み中...</h2>
             <div id="distance-info" class="text-blue-500 text-xs font-bold mt-1">次の港まであと -- マス</div>
@@ -83,19 +82,28 @@
 
     <div id="fish-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-6 z-[100]">
         <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm text-center shadow-2xl transform transition-all scale-100">
-            <h3 class="text-2xl font-black text-gray-800 mb-6 text-cyan-600">魚をゲット！</h3>
+            <h3 class="text-2xl font-black text-gray-800 mb-6 text-cyan-600">今回の釣果</h3>
             <div id="fish-list" class="space-y-3 text-left max-h-[60vh] overflow-y-auto"></div>
             <button onclick="closeModal()" class="mt-8 w-full bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-gray-800 transition-colors">冒険を続ける</button>
         </div>
     </div>
 
     <div id="fishing-overlay" class="fixed inset-0 bg-black/85 backdrop-blur-sm hidden flex-col items-center justify-center z-[110]">
-        <div id="fishing-status" class="text-white text-2xl font-bold mb-8 transition-all duration-300">🎣 釣り糸を垂らしています...</div>
         
-        <div id="fishing-result" class="hidden flex-col items-center w-full px-6">
+        <div id="fishing-line-container" class="relative w-full h-48 flex flex-col items-center justify-start mt-10">
+            <div id="fishing-line" class="w-0.5 bg-white/70 h-0 origin-top"></div>
+            <div id="fishing-bobber" class="w-3 h-10 rounded-full bg-red-500 border-2 border-white shadow-lg relative opacity-0">
+                <div class="absolute bottom-0 w-full h-1/2 bg-white rounded-b-full"></div>
+            </div>
+        </div>
+        
+        <div id="fishing-result" class="hidden flex-col items-center w-full px-6 z-10">
             <div class="text-yellow-400 text-5xl font-black mb-8 italic tracking-widest drop-shadow-[0_0_15px_rgba(250,204,21,1)]">GET!!</div>
             <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-sm text-center shadow-2xl relative">
-                <div class="absolute -top-14 left-1/2 -translate-x-1/2 text-[100px] drop-shadow-xl">🐟</div>
+                
+                <div class="absolute -top-20 left-1/2 -translate-x-1/2 w-40 h-40 flex items-center justify-center drop-shadow-xl">
+                    <img id="fishing-fish-img" src="" alt="釣れた魚" class="max-w-full max-h-full object-contain">
+                </div>
                 
                 <h3 id="fishing-fish-name" class="text-3xl font-black text-cyan-700 mt-12 mb-3">魚の名前</h3>
                 <p id="fishing-fish-desc" class="text-sm text-gray-600 mb-8 h-16 overflow-y-auto leading-relaxed">説明文</p>
@@ -106,8 +114,7 @@
             </div>
         </div>
     </div>
-    
-    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
 
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
 </body>
 </html>

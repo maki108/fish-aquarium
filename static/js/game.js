@@ -1,19 +1,20 @@
 /**
- * 石川さかな巡りすごろく - マス目見やすさ
+ * 石川さかな巡りすごろく - 完全版（一本釣り対応）
  */
 
 const TOTAL_STEPS = 64; 
 let MAP_COORDINATES = [];
 
+// ラベル（文字）が重ならないよう、出す方向を個別に設定
 const MAIN_SPOTS = {
-    0:  { name: "近江町市場", icon: "🦀", labelClass: "top-8 left-1/2 -translate-x-1/2" }, // 下に出す
-    8:  { name: "内灘",      icon: "🏖️", labelClass: "-left-10 top-1/2 -translate-y-1/2" }, // 左に出す
-    16: { name: "金沢港",    icon: "🚢", labelClass: "top-8 left-1/2 -translate-x-1/2" }, // 下に出す
-    24: { name: "羽咋港",    icon: "🛸", labelClass: "-left-10 top-1/2 -translate-y-1/2" }, // 左に出す
-    32: { name: "七尾港",    icon: "🐟", labelClass: "-right-10 top-1/2 -translate-y-1/2" },// 右に出す
-    40: { name: "輪島港",    icon: "🛍️", labelClass: "-top-6 left-1/2 -translate-x-1/2" }, // 上に出す
-    48: { name: "珠洲港",    icon: "💡", labelClass: "-top-6 left-1/2 -translate-x-1/2" }, // 上に出す
-    56: { name: "能登島",    icon: "🐬", labelClass: "-right-12 top-1/2 -translate-y-1/2" } // 右に出す
+    0:  { name: "近江町市場", icon: "🦀", labelClass: "top-8 left-1/2 -translate-x-1/2" },
+    8:  { name: "内灘",      icon: "🏖️", labelClass: "-left-10 top-1/2 -translate-y-1/2" },
+    16: { name: "金沢港",    icon: "🚢", labelClass: "top-8 left-1/2 -translate-x-1/2" },
+    24: { name: "羽咋港",    icon: "🛸", labelClass: "-left-10 top-1/2 -translate-y-1/2" },
+    32: { name: "七尾港",    icon: "🐟", labelClass: "-right-10 top-1/2 -translate-y-1/2" },
+    40: { name: "輪島港",    icon: "🛍️", labelClass: "-top-6 left-1/2 -translate-x-1/2" },
+    48: { name: "珠洲港",    icon: "💡", labelClass: "-top-6 left-1/2 -translate-x-1/2" },
+    56: { name: "能登島",    icon: "🐬", labelClass: "-right-12 top-1/2 -translate-y-1/2" }
 };
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -31,7 +32,6 @@ window.addEventListener('DOMContentLoaded', () => {
             if (MAIN_SPOTS[i]) {
                 const spot = MAIN_SPOTS[i];
                 el.className = "absolute z-20";
-                
                 el.innerHTML = `
                     <div class="relative flex flex-col items-center group">
                         <div class="w-6 h-6 bg-white/95 rounded-full border border-cyan-500 shadow-md flex items-center justify-center text-[10px] z-10">
@@ -43,7 +43,6 @@ window.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `;
             } else {
-           
                 el.className = "absolute w-1.5 h-1.5 bg-cyan-500/50 rounded-full z-10 shadow-sm";
             }
             container.appendChild(el);
@@ -53,16 +52,16 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * 座標計算ロジック
+ * 座標計算ロジック（ベジェ曲線でルートの交差を回避）
  */
 function calculateCoordinates() {
     MAP_COORDINATES = [];
     
-    // 港の位置を意図的に広げて配置
+    // 港の位置を広げて配置
     const ANCHORS = {
         0:  { x: 38, y: 78 }, // 近江町市場
-        8:  { x: 33, y: 56 }, // 内灘 (左上へ離す)
-        16: { x: 50, y: 82 }, // 金沢港 (右下へ大きく離す)
+        8:  { x: 33, y: 56 }, // 内灘
+        16: { x: 50, y: 82 }, // 金沢港
         24: { x: 42, y: 38 }, // 羽咋港
         32: { x: 58, y: 42 }, // 七尾港
         40: { x: 45, y: 15 }, // 輪島港
@@ -71,16 +70,16 @@ function calculateCoordinates() {
         64: { x: 38, y: 78 }  // ゴール
     };
 
-    // 線が絡まないように、大きく迂回するカーブを設定
+    // 大きく迂回するカーブを設定
     const CONTROL_POINTS = {
-        0:  { x: 20, y: 68 }, // 0->8: 左の海側へ大きく膨らむ
-        8:  { x: 55, y: 62 }, // 8->16: 陸側を通って金沢港へ
-        16: { x: 25, y: 65 }, // 16->24: 再び海側を大きく迂回して北上
-        24: { x: 50, y: 35 }, // 24->32: なだらかに右へ
-        32: { x: 40, y: 25 }, // 32->40: 左の海側から輪島へ
-        40: { x: 60, y: 5 },  // 40->48: 一番上を回る
-        48: { x: 85, y: 20 }, // 48->56: 右の海側を回る
-        56: { x: 80, y: 60 }  // 56->64: 右側（富山側）を通って大きく南下して戻る
+        0:  { x: 20, y: 68 }, // 左の海側へ大きく膨らむ
+        8:  { x: 55, y: 62 }, // 陸側を通って金沢港へ
+        16: { x: 25, y: 65 }, // 再び海側を大きく迂回
+        24: { x: 50, y: 35 }, // なだらかに右へ
+        32: { x: 40, y: 25 }, // 左の海側から輪島へ
+        40: { x: 60, y: 5 },  // 一番上を回る
+        48: { x: 85, y: 20 }, // 右の海側を回る
+        56: { x: 80, y: 60 }  // 右側を通って南下して戻る
     };
 
     for (let i = 0; i < TOTAL_STEPS; i++) {
@@ -93,7 +92,6 @@ function calculateCoordinates() {
         
         let t = (i % 8) / 8;
         
-        // ベジェ曲線（曲線の公式）
         let x = Math.pow(1-t, 2) * P0.x + 2 * (1-t) * t * P1.x + Math.pow(t, 2) * P2.x;
         let y = Math.pow(1-t, 2) * P0.y + 2 * (1-t) * t * P1.y + Math.pow(t, 2) * P2.y;
         
@@ -135,6 +133,7 @@ async function rollDice() {
             diceResult.innerHTML = createDiceHtml(data.dice_val);
             updateGameScreen(data);
 
+            // ★ここで「釣り開始」を呼び出す
             if (data.obtained_fishes && data.obtained_fishes.length > 0) {
                 setTimeout(() => startFishing(data.obtained_fishes), 500);
             }
@@ -179,14 +178,16 @@ function createDiceHtml(num) {
     return `<div class="dice-face dice-${num}">${dots}</div>`;
 }
 
-// 魚ゲットモーダル表示
+// 釣果のまとめモーダル表示（すべて釣り終わった後）
 function showFishModal(fishes) {
     const modal = document.getElementById('fish-modal');
     const list = document.getElementById('fish-list');
     
     list.innerHTML = fishes.map(f => `
         <div class="flex items-center bg-cyan-50 p-4 rounded-2xl border border-cyan-100 mb-2 shadow-sm">
-            <div class="text-4xl mr-4">🐟</div>
+            <div class="w-12 h-12 flex items-center justify-center mr-4 shrink-0 bg-white rounded-full">
+                 <img src="/static/images/fish/${f.image}" class="w-10 h-10 object-contain">
+            </div>
             <div>
                 <div class="font-bold text-gray-800 text-lg">${f.name}</div>
                 <div class="text-xs text-gray-500 mt-1">${f.desc}</div>
@@ -223,13 +224,12 @@ async function recoverDice(type) {
 // ==========================================
 // 一本釣り演出ロジック
 // ==========================================
-let catchQueue = [];     // 釣る予定の魚リスト
-let caughtFishes = [];   // 全釣果（最後にまとめて表示するため）
+let catchQueue = [];     
+let caughtFishes = [];   
 
-// 釣りを開始する
 function startFishing(fishes) {
     caughtFishes = fishes;
-    catchQueue = [...fishes]; // 配列をコピー
+    catchQueue = [...fishes]; 
     
     const overlay = document.getElementById('fishing-overlay');
     overlay.classList.remove('hidden');
@@ -238,62 +238,58 @@ function startFishing(fishes) {
     processNextCatch();
 }
 
-// 1匹ずつ釣り上げる処理
 function processNextCatch() {
-    const statusEl = document.getElementById('fishing-status');
+    const lineContainer = document.getElementById('fishing-line-container');
+    const line = document.getElementById('fishing-line');
+    const bobber = document.getElementById('fishing-bobber');
     const resultEl = document.getElementById('fishing-result');
     
-    // 全て釣り終わった場合
     if (catchQueue.length === 0) {
         document.getElementById('fishing-overlay').classList.add('hidden');
         document.getElementById('fishing-overlay').classList.remove('flex');
-        
-        // 最後に「今回の釣果まとめ」として元のリストを表示する
         showFishModal(caughtFishes); 
         return;
     }
 
-    const currentFish = catchQueue.shift(); // 最初の1匹を取り出す
+    const currentFish = catchQueue.shift();
 
-    // 演出を「待機中」にリセット
-    statusEl.classList.remove('hidden', 'text-red-400', 'scale-150', 'hit-animation');
-    statusEl.classList.add('text-white', 'animate-pulse');
-    statusEl.innerText = "🎣 釣り糸を垂らしています...";
-    
+    // 演出リセット
     resultEl.classList.add('hidden');
     resultEl.classList.remove('fish-pop-animation');
+    
+    lineContainer.classList.remove('hidden');
+    bobber.classList.remove('bobber-hit-animation');
+    
+    line.classList.remove('animate-drop-line');
+    bobber.classList.remove('animate-bobber');
+    void line.offsetWidth; // リフロー強制
+    line.classList.add('animate-drop-line');
+    bobber.classList.add('animate-bobber');
 
-    // 1. ウキが沈むまでの待機時間 (1秒〜2秒のランダム)
-    const waitTime = 1000 + Math.random() * 1000;
+    const waitTime = 1000 + Math.random() * 1500;
     
     setTimeout(() => {
-        // 2. ヒット！演出
-        statusEl.classList.remove('animate-pulse', 'text-white');
-        statusEl.classList.add('text-red-400', 'scale-150', 'hit-animation');
-        statusEl.innerText = "⚡ ヒット！！ ⚡";
+        // ヒット！（ウキが沈む）
+        bobber.classList.add('bobber-hit-animation');
         
-        // 3. 釣り上げて魚が飛び出す演出
         setTimeout(() => {
-            statusEl.classList.add('hidden');
-            statusEl.classList.remove('hit-animation');
+            lineContainer.classList.add('hidden');
             
-            // データをセット
+            // 実際の魚の画像を表示
+            document.getElementById('fishing-fish-img').src = `/static/images/fish/${currentFish.image}`;
             document.getElementById('fishing-fish-name').innerText = currentFish.name;
             document.getElementById('fishing-fish-desc').innerText = currentFish.desc;
             
-            // ボタンのテキスト変更（最後なら「結果を見る」にする）
             const btn = document.getElementById('fishing-next-btn');
             btn.innerText = catchQueue.length > 0 ? "次の魚を釣る 🎣" : "釣果まとめを見る";
             
-            // アニメーション付きで表示
             resultEl.classList.remove('hidden');
             resultEl.classList.add('flex', 'fish-pop-animation');
 
-        }, 800); // ヒットしてから釣り上げるまでの「タメ」の時間
+        }, 800);
     }, waitTime);
 }
 
-// HTMLの「次へ」ボタンから呼ばれる関数
 function nextCatch() {
     processNextCatch();
 }
