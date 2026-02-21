@@ -136,7 +136,7 @@ async function rollDice() {
             updateGameScreen(data);
 
             if (data.obtained_fishes && data.obtained_fishes.length > 0) {
-                setTimeout(() => showFishModal(data.obtained_fishes), 500);
+                setTimeout(() => startFishing(data.obtained_fishes), 500);
             }
 
             button.disabled = false;
@@ -218,4 +218,82 @@ async function recoverDice(type) {
             }
         }
     } catch(e) { console.error(e); }
+}
+
+// ==========================================
+// 一本釣り演出ロジック
+// ==========================================
+let catchQueue = [];     // 釣る予定の魚リスト
+let caughtFishes = [];   // 全釣果（最後にまとめて表示するため）
+
+// 釣りを開始する
+function startFishing(fishes) {
+    caughtFishes = fishes;
+    catchQueue = [...fishes]; // 配列をコピー
+    
+    const overlay = document.getElementById('fishing-overlay');
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+    
+    processNextCatch();
+}
+
+// 1匹ずつ釣り上げる処理
+function processNextCatch() {
+    const statusEl = document.getElementById('fishing-status');
+    const resultEl = document.getElementById('fishing-result');
+    
+    // 全て釣り終わった場合
+    if (catchQueue.length === 0) {
+        document.getElementById('fishing-overlay').classList.add('hidden');
+        document.getElementById('fishing-overlay').classList.remove('flex');
+        
+        // 最後に「今回の釣果まとめ」として元のリストを表示する
+        showFishModal(caughtFishes); 
+        return;
+    }
+
+    const currentFish = catchQueue.shift(); // 最初の1匹を取り出す
+
+    // 演出を「待機中」にリセット
+    statusEl.classList.remove('hidden', 'text-red-400', 'scale-150', 'hit-animation');
+    statusEl.classList.add('text-white', 'animate-pulse');
+    statusEl.innerText = "🎣 釣り糸を垂らしています...";
+    
+    resultEl.classList.add('hidden');
+    resultEl.classList.remove('fish-pop-animation');
+
+    // 1. ウキが沈むまでの待機時間 (1秒〜2秒のランダム)
+    const waitTime = 1000 + Math.random() * 1000;
+    
+    setTimeout(() => {
+        // 2. ヒット！演出
+        statusEl.classList.remove('animate-pulse', 'text-white');
+        statusEl.classList.add('text-red-400', 'scale-150', 'hit-animation');
+        statusEl.innerText = "⚡ ヒット！！ ⚡";
+        
+        // 3. 釣り上げて魚が飛び出す演出
+        setTimeout(() => {
+            statusEl.classList.add('hidden');
+            statusEl.classList.remove('hit-animation');
+            
+            // データをセット
+            document.getElementById('fishing-fish-name').innerText = currentFish.name;
+            document.getElementById('fishing-fish-desc').innerText = currentFish.desc;
+            
+            // ボタンのテキスト変更（最後なら「結果を見る」にする）
+            const btn = document.getElementById('fishing-next-btn');
+            btn.innerText = catchQueue.length > 0 ? "次の魚を釣る 🎣" : "釣果まとめを見る";
+            
+            // アニメーション付きで表示
+            resultEl.classList.remove('hidden');
+            resultEl.classList.add('flex', 'fish-pop-animation');
+
+        }, 800); // ヒットしてから釣り上げるまでの「タメ」の時間
+    }, waitTime);
+}
+
+// HTMLの「次へ」ボタンから呼ばれる関数
+function nextCatch() {
+    processNextCatch();
 }
