@@ -205,19 +205,34 @@ function closeModal() {
 }
 
 // 回復処理
-async function recoverDice(type) {
+async function recoverDice(actionType) {
+    // 画面移動はHTMLの <a> タグがやってくれるので、ここはAPIを叩くだけ！
+    
     try {
-        const response = await fetch('/api/recovery', { method: 'POST' });
+        const response = await fetch('/api/recovery', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
         const data = await response.json();
+        
         if (data.success) {
-            document.getElementById('dice-count').innerText = data.new_count;
-            if (type === 'x') {
-                window.open('https://twitter.com/intent/tweet?text=石川さかな巡りすごろくで遊んでます！&hashtags=石川県', '_blank');
-            } else if (type === 'site') {
-                window.open('https://www.hot-ishikawa.jp/', '_blank');
+            // サイコロの表示を更新
+            const diceEl = document.getElementById('dice-count');
+            if (diceEl) {
+                diceEl.innerText = data.new_count;
+            }
+            
+            // サイコロを振るボタンを復活させる
+            const rollBtn = document.getElementById('roll-btn');
+            if (rollBtn) {
+                rollBtn.disabled = false;
+                rollBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
         }
-    } catch(e) { console.error(e); }
+    } catch (error) {
+        console.error('回復エラー:', error);
+    }
 }
 
 // ==========================================

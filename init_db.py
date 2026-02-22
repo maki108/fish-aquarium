@@ -1,6 +1,8 @@
 # init_db.py の投入データ部分を修正
 from datetime import datetime
 
+from werkzeug.security import generate_password_hash
+
 from app import app
 from models.database import Fish, Spot, User, db  # Userを追加
 
@@ -14,6 +16,7 @@ def init_database():
         test_user = User(
             id=1,
             username="石川旅人",
+            password_hash=generate_password_hash("password123"),
             current_position_id=0,
             dice_count=2,
             last_dice_at=datetime.utcnow(),
