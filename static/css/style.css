@@ -161,16 +161,44 @@ body {
 
 /* 泡の上昇アニメーション */
 @keyframes bubble {
-    0% { transform: translateY(100vh); opacity: 0; }
-    50% { opacity: 0.5; }
-    100% { transform: translateY(-10vh); opacity: 0; }
+    0% { transform: translateY(0) scale(0.8); opacity: 0; }
+    20% { opacity: 0.65; }
+    100% { transform: translateY(-120vh) scale(1.1); opacity: 0; }
 }
 
 .bubble {
     position: absolute;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    animation: bubble 10s infinite;
+    bottom: -48px;
+    background-image: url('/images/effect/bubble.png'), url('/static/images/effect/bubble.png');
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    animation: bubble 10s linear infinite;
+}
+
+/* タップ・クリック時の水面波紋 */
+@keyframes water-ripple {
+    0% {
+        transform: translate(-50%, -50%) scale(0.2);
+        opacity: 0.7;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 0;
+    }
+}
+
+.water-ripple {
+    position: absolute;
+    width: 90px;
+    height: 90px;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    border-radius: 9999px;
+    box-shadow: 0 0 0 2px rgba(125, 211, 252, 0.35);
+    pointer-events: none;
+    z-index: 20;
+    animation: water-ripple 0.8s ease-out forwards;
 }
 
 /* --- ユーティリティ (図鑑の横スクロール用) --- */

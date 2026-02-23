@@ -7,14 +7,18 @@ from flask import Flask, jsonify, redirect, render_template, request, session, u
 from models.database import Fish, User, UserCollection, db
 
 basedir = os.path.abspath(os.path.dirname(__file__))
+db_dir = os.path.join(basedir, "instance")
+os.makedirs(db_dir, exist_ok=True)
+db_path = os.path.join(db_dir, "game.db")
 
 app = Flask(__name__)
 # データベース接続設定
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(
-    basedir, "instance", "game.db"
-)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + db_path
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
+
+with app.app_context():
+    db.create_all()
 
 # ---------------------------------------------------------
 # 定数設定 (JS側の game.js と同期させる)
@@ -119,7 +123,22 @@ def encyclopedia():
 
 @app.route("/aquarium")
 def aquarium():
-    return render_template("aquarium.html")
+    return render_template(
+        "aquarium.html",
+        stage_id=1,
+        stage_name="ステージ1",
+        wallpaper_file="ver1.png",
+    )
+
+
+@app.route("/aquarium/stage2")
+def aquarium_stage2():
+    return render_template(
+        "aquarium.html",
+        stage_id=2,
+        stage_name="ステージ2",
+        wallpaper_file="ver7.png",
+    )
 
 
 # ---------------------------------------------------------
@@ -262,6 +281,39 @@ def recover_dice():
     user.dice_count += 1
     db.session.commit()
     return jsonify({"success": True, "new_count": user.dice_count})
+
+
+@app.route("/admin/unlock-all", methods=["POST", "GET"])
+def admin_unlock_all():
+    """開発用: ログイン中ユーザーの魚を全解放"""
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    user = db.session.get(User, session["user_id"])
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    all_fishes = Fish.query.all()
+    owned_ids = {
+        c.fish_id for c in UserCollection.query.filter_by(user_id=user.id).all()
+    }
+
+    new_records = 0
+    for fish in all_fishes:
+        if fish.id not in owned_ids:
+            db.session.add(UserCollection(user_id=user.id, fish_id=fish.id))
+            new_records += 1
+
+    db.session.commit()
+
+    return jsonify(
+        {
+            "success": True,
+            "message": "全魚を解放しました",
+            "added": new_records,
+            "collection_status": f"{UserCollection.query.filter_by(user_id=user.id).count()}/{Fish.query.count()}",
+        }
+    )
 
 
 if __name__ == "__main__":

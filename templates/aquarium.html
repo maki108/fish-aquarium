@@ -7,9 +7,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        /* 水槽の背景グラデーション */
+        /* 水槽の背景画像 */
         .tank-bg {
-            background: linear-gradient(180deg, #0ea5e9 0%, #1e3a8a 100%);
+            background-image: url('/images/walllpaper/{{ wallpaper_file|default("ver1.png") }}'), url('/images/wallpaper/{{ wallpaper_file|default("ver1.png") }}'), url('/static/images/wallpaper/{{ wallpaper_file|default("ver1.png") }}');
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
         }
     </style>
 </head>
@@ -19,8 +22,12 @@
         <h1 class="text-lg font-bold text-blue-600 flex items-center">
             <span class="mr-2 text-2xl">🌊</span>マイ水族館
         </h1>
-        <div class="text-right">
-            <p class="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">癒やしの空間</p>
+        <div class="text-right flex flex-col items-end gap-1">
+            <p class="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">{{ stage_name|default('ステージ1') }}</p>
+            <div class="flex items-center gap-1 text-[10px] font-bold">
+                <a href="/aquarium" class="px-2 py-1 rounded-full {% if (stage_id|default(1)) == 1 %}bg-cyan-500 text-white{% else %}bg-gray-100 text-gray-600{% endif %}">1</a>
+                <a href="/aquarium/stage2" class="px-2 py-1 rounded-full {% if (stage_id|default(1)) == 2 %}bg-cyan-500 text-white{% else %}bg-gray-100 text-gray-600{% endif %}">2</a>
+            </div>
         </div>
     </header>
 
@@ -32,10 +39,11 @@
                 <h2 class="text-4xl font-black text-white leading-tight text-center tracking-widest">ISHIKAWA<br>AQUARIUM</h2>
             </div>
 
-            <div id="bubble-container" class="absolute inset-0 pointer-events-none z-0"></div>
-
-            <div id="fish-tank" class="relative w-full h-full z-10">
+            <div class="relative w-full h-full overflow-x-auto overflow-y-hidden no-scrollbar" style="touch-action: pan-x;">
+                <div id="fish-tank" class="relative h-full z-10 min-w-[140%] md:min-w-[120%]" style="width: max(140%, 900px);">
+                    <div id="bubble-container" class="absolute inset-0 pointer-events-none z-0"></div>
                 </div>
+            </div>
 
             <div id="talk-bubble" class="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur px-6 py-3 rounded-2xl shadow-lg hidden z-50 transition-all transform scale-95 border-2 border-blue-100 max-w-[80%] text-center">
                 <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-b-2 border-r-2 border-blue-100"></div>

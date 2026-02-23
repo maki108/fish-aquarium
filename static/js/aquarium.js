@@ -39,7 +39,7 @@ const fishEl = document.createElement('div');
 
 // 基本クラス設定（位置調整用）
 
-fishEl.className = 'absolute flex flex-col items-center justify-center transition-all duration-300 cursor-pointer';
+fishEl.className = 'absolute z-10 flex flex-col items-center justify-center transition-all duration-300 cursor-pointer';
 
 
 
@@ -158,12 +158,16 @@ console.error("水族館の読み込みに失敗しました", e);
 function createBubbles() {
 
 const container = document.getElementById('bubble-container');
+const tank = document.getElementById('fish-tank');
 
-if (!container) return;
+if (!container || !tank) return;
+
+container.innerHTML = '';
+
+const bubbleCount = Math.max(15, Math.floor(tank.scrollWidth / 90));
 
 
-
-for (let i = 0; i < 15; i++) {
+for (let i = 0; i < bubbleCount; i++) {
 
 const b = document.createElement('div');
 
@@ -176,14 +180,63 @@ b.style.width = `${size}px`;
 
 b.style.height = `${size}px`;
 
-b.style.left = `${Math.random() * 100}%`; // 横位置
+b.style.left = `${Math.random() * tank.scrollWidth}px`; // 横位置（スクロール領域全体）
 
 b.style.animationDelay = `${Math.random() * 10}s`; // 開始のズレ
+b.style.animationDuration = `${8 + Math.random() * 6}s`;
 
 
 container.appendChild(b);
 
 }
+
+}
+
+
+
+// 2.5 タップ・クリック時の波紋演出
+
+function setupWaterRipple() {
+
+const tank = document.getElementById('fish-tank');
+
+if (!tank || !tank.parentElement) return;
+
+const scrollArea = tank.parentElement;
+
+
+
+scrollArea.addEventListener('pointerdown', (event) => {
+
+const rect = scrollArea.getBoundingClientRect();
+
+const x = event.clientX - rect.left + scrollArea.scrollLeft;
+
+const y = event.clientY - rect.top;
+
+
+
+const ripple = document.createElement('span');
+
+ripple.className = 'water-ripple';
+
+ripple.style.left = `${x}px`;
+
+ripple.style.top = `${y}px`;
+
+
+
+tank.appendChild(ripple);
+
+
+
+setTimeout(() => {
+
+ripple.remove();
+
+}, 900);
+
+});
 
 }
 
@@ -246,5 +299,7 @@ loadAquarium();
 // createBubbles関数がある場合は実行
 
 if (typeof createBubbles === 'function') createBubbles();
+
+setupWaterRipple();
 
 });
