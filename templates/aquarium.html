@@ -9,7 +9,7 @@
     <style>
         /* 水槽の背景画像 */
         .tank-bg {
-            background-image: url('/images/walllpaper/{{ wallpaper_file|default("ver1.png") }}'), url('/images/wallpaper/{{ wallpaper_file|default("ver1.png") }}'), url('/static/images/wallpaper/{{ wallpaper_file|default("ver1.png") }}');
+            background-image: url('/static/images/wallpaper/{{ wallpaper_file|default("ver1.png") }}');
             background-position: center;
             background-size: cover;
             background-repeat: no-repeat;
@@ -37,6 +37,26 @@
             
             <div class="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none z-0">
                 <h2 class="text-4xl font-black text-white leading-tight text-center tracking-widest">ISHIKAWA<br>AQUARIUM</h2>
+            </div>
+
+            <div class="aquarium-light-layer absolute inset-0 pointer-events-none z-[2]">
+                <div class="surface-shimmer"></div>
+                <div class="surface-reflection"></div>
+
+                <svg class="light-rays" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="rayGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="rgba(255,255,255,0.55)" />
+                            <stop offset="60%" stop-color="rgba(255,255,255,0.12)" />
+                            <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+                        </linearGradient>
+                    </defs>
+                    <polygon class="light-ray ray-1" points="10,0 18,0 36,100 22,100" fill="url(#rayGradient)"></polygon>
+                    <polygon class="light-ray ray-2" points="34,0 44,0 60,100 46,100" fill="url(#rayGradient)"></polygon>
+                    <polygon class="light-ray ray-3" points="62,0 72,0 86,100 72,100" fill="url(#rayGradient)"></polygon>
+                </svg>
+
+                <div id="light-particle-container" class="light-particle-container"></div>
             </div>
 
             <div class="relative w-full h-full overflow-x-auto overflow-y-hidden no-scrollbar" style="touch-action: pan-x;">

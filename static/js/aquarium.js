@@ -194,6 +194,42 @@ container.appendChild(b);
 
 
 
+// 2.3 光の粒子を生成する演出
+
+function createLightParticles() {
+
+const container = document.getElementById('light-particle-container');
+const tank = document.getElementById('fish-tank');
+
+if (!container || !tank) return;
+
+container.innerHTML = '';
+
+const particleCount = Math.max(10, Math.floor(tank.scrollWidth / 160));
+
+
+for (let i = 0; i < particleCount; i++) {
+
+const particle = document.createElement('span');
+
+particle.className = 'light-particle';
+
+const size = 2 + Math.random() * 3;
+particle.style.width = `${size}px`;
+particle.style.height = `${size}px`;
+particle.style.left = `${Math.random() * 100}%`;
+particle.style.animationDelay = `${Math.random() * 11}s`;
+particle.style.animationDuration = `${12 + Math.random() * 8}s`;
+
+
+container.appendChild(particle);
+
+}
+
+}
+
+
+
 // 2.5 タップ・クリック時の波紋演出
 
 function setupWaterRipple() {
@@ -299,6 +335,7 @@ loadAquarium();
 // createBubbles関数がある場合は実行
 
 if (typeof createBubbles === 'function') createBubbles();
+if (typeof createLightParticles === 'function') createLightParticles();
 
 setupWaterRipple();
 
