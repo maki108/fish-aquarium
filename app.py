@@ -155,7 +155,7 @@ def get_user_status():
 
 @app.route("/api/roll-dice", methods=["POST"])
 def roll_dice():
-    """サイコロを振るメイン処理（港での強制停止付き）"""
+    """サイコロを振るメイン処理（港での強制停止＆レアリティ確率付き）"""
     if "user_id" not in session:
         return jsonify({"error": "Unauthorized"}), 401
 
@@ -179,16 +179,47 @@ def roll_dice():
 
         if current_step in PORTS:
             stopped_at_port = True
-            # 魚の抽選
+
+            # ==========================================
+            # 魚の抽選（確率設定）
+            # ==========================================
             all_fish = Fish.query.all()
             if all_fish:
-                drawn = random.sample(all_fish, min(3, len(all_fish)))
+                # 1. レアリティごとの出現確率（重み）を設定
+                # 数字が大きいほど出やすくなります
+                RARITY_WEIGHTS = {
+                    "ノーマル": 75,  # 75%の確率で選ばれやすい
+                    "レア": 20,  # 20%の確率で選ばれやすい
+                    "レジェンド": 5,  # 5%の確率でしか選ばれない
+                }
+
+                drawn = []
+                # 最大3匹まで釣る
+                draw_count = min(3, len(all_fish))
+
+                for _ in range(draw_count):
+                    # まだ今回の釣りで選ばれていない魚だけをリストアップ
+                    available_fish = [f for f in all_fish if f not in drawn]
+                    if not available_fish:
+                        break
+
+                    # それぞれの魚が持つ「重み（確率）」のリストを作る
+                    weights = [RARITY_WEIGHTS.get(f.rarity, 10) for f in available_fish]
+
+                    # 確率に基づいて1匹選ぶ
+                    chosen_fish = random.choices(available_fish, weights=weights, k=1)[
+                        0
+                    ]
+                    drawn.append(chosen_fish)
+
+                # 選ばれた魚を図鑑に登録して結果画面へ渡す
                 for f in drawn:
                     existing = UserCollection.query.filter_by(
                         user_id=user.id, fish_id=f.id
                     ).first()
                     if not existing:
                         db.session.add(UserCollection(user_id=user.id, fish_id=f.id))
+
                     obtained_fishes.append(
                         {
                             "name": f.name,

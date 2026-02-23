@@ -33,24 +33,34 @@ function renderList(fishes) {
     if (!list) return;
 
     list.innerHTML = fishes.map(fish => {
-        // レアリティに応じた色分け
-        const rarityColor = fish.rarity === '伝説' ? 'bg-yellow-400' : 
-                            fish.rarity === 'レア' ? 'bg-purple-400' : 
-                            fish.rarity === '珍しい' ? 'bg-green-400' : 'bg-blue-300';
+        // レアリティに応じた色分け（ここを新しい区分に修正！）
+        const rarityColor = fish.rarity === 'レジェンド' ? 'bg-yellow-400' : 
+                            fish.rarity === 'レア' ? 'bg-purple-400' :
+                            fish.rarity === 'ノーマル' ? 'bg-blue-300' : 'bg-gray-300';
         
+        // 魚のデータを安全に渡すための工夫
+        const fishDataStr = encodeURIComponent(JSON.stringify(fish));
+
         return `
-            <div onclick='showDetail(...)' class="...">
+            <div onclick="showDetail(JSON.parse(decodeURIComponent('${fishDataStr}')))" class="relative aspect-square rounded-3xl p-4 flex flex-col items-center justify-center transition-all duration-300 transform hover:scale-105 shadow-md border-4 ${fish.is_owned ? 'border-transparent bg-white cursor-pointer hover:shadow-xl' : 'border-gray-200 bg-gray-50/50 cursor-not-allowed'} group overflow-hidden">
+                
+                ${fish.is_owned ? `
+                    <div class="absolute top-0 right-0 ${rarityColor} text-white text-[8px] font-black px-3 py-1 rounded-bl-xl shadow-sm z-10">
+                        ${fish.rarity}
+                    </div>
+                ` : ''}
+                
                 <div class="mb-2 w-20 h-20 flex items-center justify-center">
                     ${fish.is_owned 
-                        ? `<img src="/static/images/fish/${fish.image}" class="w-full h-full object-contain drop-shadow-md">` 
-                        : '<span class="text-4xl">❓</span>'
+                        ? `<img src="/static/images/fish/${fish.image}" class="w-full h-full object-contain drop-shadow-md transition-transform group-hover:scale-110">` 
+                        : '<span class="text-4xl opacity-30 grayscale filter">❓</span>'
                     }
                 </div>
                 
-                <div class="text-[10px] font-bold text-center text-blue-900">
+                <div class="text-[10px] font-bold text-center text-blue-900 line-clamp-2 leading-tight">
                     ${fish.name}
                 </div>
-                </div>
+            </div>
         `;
     }).join('');
 }

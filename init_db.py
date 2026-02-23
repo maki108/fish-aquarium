@@ -36,8 +36,32 @@ def init_database():
             # 伝説 (Legend) - 石川を代表する高級ブランド
             # ----------------------------------------
             Fish(
+                name="加能ガニ「輝」",
+                rarity="レジェンド",
+                price_range="450,000円〜",
+                image_file="kagayaki.png",
+                details={
+                    "biology": "石川県産ズワイガニの中で、重さ1.5kg以上など極めて厳しい基準をクリアした奇跡の最高級ブランド。",
+                    "season": "冬",
+                    "fishing_method": "底引き網",
+                    "food_culture": "茹でガニ、カニ刺し、焼きガニ",
+                },
+            ),
+            Fish(
+                name="天然能登寒ぶり「煌」",
+                rarity="レジェンド",
+                price_range="4,000,000円",
+                image_file="kirameki.png",
+                details={
+                    "biology": "重さ14kg以上など極めて厳しい基準をクリアした天然能登寒ぶりの最高峰ブランド。奇跡の1本とも呼ばれる。",
+                    "season": "冬",
+                    "fishing_method": "定置網",
+                    "food_culture": "極上のブリしゃぶ、刺身",
+                },
+            ),
+            Fish(
                 name="ノドグロ",
-                rarity="伝説",
+                rarity="レジェンド",
                 price_range="5,000円〜",
                 image_file="nodoguro.png",
                 details={
@@ -49,7 +73,7 @@ def init_database():
             ),
             Fish(
                 name="能登寒ブリ",
-                rarity="伝説",
+                rarity="レジェンド",
                 price_range="20,000円〜",
                 image_file="notokanburi.png",
                 details={
@@ -61,7 +85,7 @@ def init_database():
             ),
             Fish(
                 name="キジハタ",
-                rarity="伝説",
+                rarity="レジェンド",
                 price_range="4,000円〜",
                 image_file="kizihata.png",
                 details={
@@ -71,9 +95,12 @@ def init_database():
                     "food_culture": "薄造り、煮付け",
                 },
             ),
+            # ----------------------------------------
+            # レア - 高級、または地元ならではの特産
+            # ----------------------------------------
             Fish(
                 name="イワガキ",
-                rarity="伝説",
+                rarity="レア",
                 price_range="800円/個〜",
                 image_file="iwagaki.png",
                 details={
@@ -83,9 +110,6 @@ def init_database():
                     "food_culture": "生食（レモンを搾って）",
                 },
             ),
-            # ----------------------------------------
-            # レア (Rare) - 高級、または地元ならではの特産
-            # ----------------------------------------
             Fish(
                 name="トゲザコエビ",
                 rarity="レア",
@@ -146,12 +170,9 @@ def init_database():
                     "food_culture": "カニ面、おでん",
                 },
             ),
-            # ----------------------------------------
-            # 珍しい (Uncommon) - 季節ものや特徴的な魚
-            # ----------------------------------------
             Fish(
                 name="ホッコクアカエビ",
-                rarity="珍しい",
+                rarity="レア",
                 price_range="1,000円〜",
                 image_file="hokkokuakaebi.png",
                 details={
@@ -163,7 +184,7 @@ def init_database():
             ),
             Fish(
                 name="サワラ",
-                rarity="珍しい",
+                rarity="レア",
                 price_range="1,500円〜",
                 image_file="sawara.png",
                 details={
@@ -175,7 +196,7 @@ def init_database():
             ),
             Fish(
                 name="ヤリイカ",
-                rarity="珍しい",
+                rarity="レア",
                 price_range="1,200円〜",
                 image_file="yariika.png",
                 details={
@@ -187,7 +208,7 @@ def init_database():
             ),
             Fish(
                 name="ウスメバル",
-                rarity="珍しい",
+                rarity="レア",
                 price_range="1,000円〜",
                 image_file="usumebaru.png",
                 details={
@@ -199,7 +220,7 @@ def init_database():
             ),
             Fish(
                 name="シャコ",
-                rarity="珍しい",
+                rarity="レア",
                 price_range="800円〜",
                 image_file="shako.png",
                 details={
@@ -211,7 +232,7 @@ def init_database():
             ),
             Fish(
                 name="コウイカ",
-                rarity="珍しい",
+                rarity="レア",
                 price_range="1,000円〜",
                 image_file="kouika.png",
                 details={
@@ -223,7 +244,7 @@ def init_database():
             ),
             Fish(
                 name="アカカマス",
-                rarity="珍しい",
+                rarity="レア",
                 price_range="1,000円〜",
                 image_file="akakamasu.png",
                 details={
@@ -234,11 +255,11 @@ def init_database():
                 },
             ),
             # ----------------------------------------
-            # 普通 (Common) - 食卓でおなじみ
+            # ノーマル - 食卓でおなじみ
             # ----------------------------------------
             Fish(
                 name="アジ",
-                rarity="普通",
+                rarity="ノーマル",
                 price_range="100円〜",
                 image_file="azi.png",
                 details={
@@ -250,7 +271,7 @@ def init_database():
             ),
             Fish(
                 name="ハタハタ",
-                rarity="普通",
+                rarity="ノーマル",
                 price_range="300円〜",
                 image_file="hatahata.png",
                 details={
@@ -262,7 +283,7 @@ def init_database():
             ),
             Fish(
                 name="アカカレイ",
-                rarity="普通",
+                rarity="ノーマル",
                 price_range="300円〜",
                 image_file="akakarei.png",
                 details={
@@ -274,7 +295,7 @@ def init_database():
             ),
             Fish(
                 name="スルメイカ",
-                rarity="普通",
+                rarity="ノーマル",
                 price_range="200円〜",
                 image_file="surumeika.png",
                 details={
@@ -286,7 +307,7 @@ def init_database():
             ),
             Fish(
                 name="サザエ",
-                rarity="普通",
+                rarity="ノーマル",
                 price_range="300円〜",
                 image_file="sazae.png",
                 details={
@@ -298,7 +319,7 @@ def init_database():
             ),
             Fish(
                 name="ウマヅラハギ",
-                rarity="普通",
+                rarity="ノーマル",
                 price_range="200円〜",
                 image_file="umadurahagi.png",
                 details={
@@ -310,7 +331,7 @@ def init_database():
             ),
             Fish(
                 name="ウルメイワシ",
-                rarity="普通",
+                rarity="ノーマル",
                 price_range="100円〜",
                 image_file="urumeiwasi.png",
                 details={
@@ -322,7 +343,7 @@ def init_database():
             ),
             Fish(
                 name="アブラツノザメ",
-                rarity="普通",
+                rarity="ノーマル",
                 price_range="200円〜",
                 image_file="aburatunozame.png",
                 details={
@@ -334,7 +355,7 @@ def init_database():
             ),
             Fish(
                 name="アカモク",
-                rarity="普通",
+                rarity="ノーマル",
                 price_range="200円〜",
                 image_file="akamoku.png",
                 details={
