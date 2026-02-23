@@ -186,7 +186,9 @@ function showFishModal(fishes) {
     
     list.innerHTML = fishes.map(f => `
         <div class="flex items-center bg-cyan-50 p-4 rounded-2xl border border-cyan-100 mb-2 shadow-sm">
-            <div class="text-4xl mr-4">🐟</div>
+            <div class="w-12 h-12 mr-4 flex-shrink-0">
+                <img src="/static/images/fish/${f.image}" class="w-full h-full object-contain">
+            </div>
             <div>
                 <div class="font-bold text-gray-800 text-lg">${f.name}</div>
                 <div class="text-xs text-gray-500 mt-1">${f.desc}</div>
@@ -295,6 +297,7 @@ function processNextCatch() {
             // データをセット
             document.getElementById('fishing-fish-name').innerText = currentFish.name;
             document.getElementById('fishing-fish-desc').innerText = currentFish.desc;
+            document.getElementById('fishing-fish-image').src = `/static/images/fish/${currentFish.image}`;
             
             // ボタンのテキスト変更（最後なら「結果を見る」にする）
             const btn = document.getElementById('fishing-next-btn');
