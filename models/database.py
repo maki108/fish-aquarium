@@ -53,3 +53,12 @@ class UserCollection(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     fish_id = db.Column(db.Integer, db.ForeignKey("fish.id"))
     obtained_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class UserNet(db.Model):
+    """プレイヤーが設置した網を記憶するテーブル"""
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    port_id = db.Column(db.Integer, nullable=False)  # どの港(マス目)に置いたか
+    net_type = db.Column(db.String(50), nullable=False)  # まき網、定置網など

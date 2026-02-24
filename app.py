@@ -4,17 +4,21 @@ from datetime import date, datetime
 
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 
-from models.database import Fish, User, UserCollection, db
+from models.database import Fish, User, UserCollection, UserNet, db
 
 basedir = os.path.abspath(os.path.dirname(__file__))
+db_dir = os.path.join(basedir, "instance")
+os.makedirs(db_dir, exist_ok=True)
+db_path = os.path.join(db_dir, "game.db")
 
 app = Flask(__name__)
 # データベース接続設定
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(
-    basedir, "instance", "game.db"
-)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + db_path
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
+
+with app.app_context():
+    db.create_all()
 
 # ---------------------------------------------------------
 # 定数設定 (JS側の game.js と同期させる)
@@ -29,6 +33,77 @@ PORTS = {
     40: "輪島港",
     48: "珠洲港",
     56: "能登島",
+}
+
+PORT_FISH_MAP = {
+    # 近江町市場（市場なので高級品から定番まで）
+    0: [
+        "ノドグロ",
+        "ズワイガニ",
+        "イワガキ",
+        "アジ",
+        "サザエ",
+        "天然能登寒ぶり「煌」",
+    ],
+    # 内灘（砂浜・沿岸系）
+    8: [
+        "アジ",
+        "スルメイカ",
+        "サワラ",
+        "コウイカ",
+        "アカカマス",
+        "天然能登寒ぶり「煌」",
+    ],
+    # 金沢港（底引き網系）
+    16: [
+        "ホッコクアカエビ",
+        "トゲザコエビ",
+        "アカカレイ",
+        "ハタハタ",
+        "ズワイガニ",
+    ],
+    # 羽咋港
+    24: [
+        "サワラ",
+        "アジ",
+        "スルメイカ",
+        "アカモク",
+        "天然能登寒ぶり「煌」",
+    ],
+    # 七尾港（波が穏やかな内湾系）
+    32: [
+        "シャコ",
+        "ウマヅラハギ",
+        "サザエ",
+        "イワガキ",
+        "ウルメイワシ",
+    ],
+    # 輪島港（冬の日本海の王者たち）
+    40: [
+        "能登寒ブリ",
+        "アンコウ",
+        "毛ガニ",
+        "ヤリイカ",
+        "アブラツノザメ",
+        "加能ガニ「輝」",
+    ],
+    # 珠洲港（磯や岩場系）
+    48: [
+        "キジハタ",
+        "イシダイ",
+        "サザエ",
+        "ウスメバル",
+        "アジ",
+    ],
+    # 能登島
+    56: [
+        "ウマヅラハギ",
+        "アジ",
+        "サザエ",
+        "アカモク",
+        "コウイカ",
+        "天然能登寒ぶり「煌」,",
+    ],  # 能登島
 }
 
 
@@ -119,7 +194,22 @@ def encyclopedia():
 
 @app.route("/aquarium")
 def aquarium():
-    return render_template("aquarium.html")
+    return render_template(
+        "aquarium.html",
+        stage_id=1,
+        stage_name="ステージ1",
+        wallpaper_file="ver1.png",
+    )
+
+
+@app.route("/aquarium/stage2")
+def aquarium_stage2():
+    return render_template(
+        "aquarium.html",
+        stage_id=2,
+        stage_name="ステージ2",
+        wallpaper_file="ver7.png",
+    )
 
 
 # ---------------------------------------------------------
@@ -155,7 +245,7 @@ def get_user_status():
 
 @app.route("/api/roll-dice", methods=["POST"])
 def roll_dice():
-    """サイコロを振るメイン処理（港での強制停止＆レアリティ確率付き）"""
+    """サイコロを振るメイン処理"""
     if "user_id" not in session:
         return jsonify({"error": "Unauthorized"}), 401
 
@@ -171,8 +261,9 @@ def roll_dice():
     actual_move = 0
     obtained_fishes = []
     stopped_at_port = False
+    recovered_net = None
+    net_catch_count = 0  # 網で獲れた数を記録
 
-    # 1マスずつ判定して港があれば止まる
     for i in range(1, dice_val + 1):
         actual_move = i
         current_step = (old_pos_total + i) % TOTAL_STEPS
@@ -180,51 +271,92 @@ def roll_dice():
         if current_step in PORTS:
             stopped_at_port = True
 
-            # ==========================================
-            # 魚の抽選（確率設定）
-            # ==========================================
             all_fish = Fish.query.all()
             if all_fish:
-                # 1. レアリティごとの出現確率（重み）を設定
-                # 数字が大きいほど出やすくなります
-                RARITY_WEIGHTS = {
-                    "ノーマル": 75,  # 75%の確率で選ばれやすい
-                    "レア": 20,  # 20%の確率で選ばれやすい
-                    "レジェンド": 5,  # 5%の確率でしか選ばれない
-                }
+                allowed_fish_names = PORT_FISH_MAP.get(current_step, [])
+                port_fishes = [f for f in all_fish if f.name in allowed_fish_names]
+                if not port_fishes:
+                    port_fishes = all_fish
 
-                drawn = []
-                # 最大3匹まで釣る
-                draw_count = min(3, len(all_fish))
+                RARITY_WEIGHTS = {"ノーマル": 75, "レア": 20, "レジェンド": 5}
 
-                for _ in range(draw_count):
-                    # まだ今回の釣りで選ばれていない魚だけをリストアップ
-                    available_fish = [f for f in all_fish if f not in drawn]
+                # ==========================================
+                # 1. 網の回収チェックと大漁抽選
+                # ==========================================
+                existing_net = UserNet.query.filter_by(
+                    user_id=user.id, port_id=current_step
+                ).first()
+
+                if existing_net:
+                    recovered_net = existing_net.net_type
+                    db.session.delete(existing_net)  # 網を消費
+
+                    # 2〜10匹の重み付け抽選
+                    counts = [2, 3, 4, 5, 6, 7, 8, 9, 10]
+                    weights = [5, 10, 20, 30, 20, 10, 5, 2, 1]
+                    net_catch_count = random.choices(counts, weights=weights, k=1)[0]
+
+                    for _ in range(net_catch_count):
+                        weights_f = [
+                            RARITY_WEIGHTS.get(f.rarity, 10) for f in port_fishes
+                        ]
+                        chosen_fish = random.choices(
+                            port_fishes, weights=weights_f, k=1
+                        )[
+                            0
+                        ]  # 網は重複OK
+
+                        existing = UserCollection.query.filter_by(
+                            user_id=user.id, fish_id=chosen_fish.id
+                        ).first()
+                        if not existing:
+                            db.session.add(
+                                UserCollection(user_id=user.id, fish_id=chosen_fish.id)
+                            )
+
+                        obtained_fishes.append(
+                            {
+                                "name": chosen_fish.name,
+                                "image": chosen_fish.image_file,
+                                "desc": chosen_fish.details.get("biology", ""),
+                                "source": "net",
+                            }
+                        )
+
+                # ==========================================
+                # 2. 通常の釣り（網があっても必ず行う）
+                # ==========================================
+                normal_draw_count = min(3, len(port_fishes))
+                normal_drawn = []
+
+                for _ in range(normal_draw_count):
+                    available_fish = [f for f in port_fishes if f not in normal_drawn]
                     if not available_fish:
                         break
-
-                    # それぞれの魚が持つ「重み（確率）」のリストを作る
-                    weights = [RARITY_WEIGHTS.get(f.rarity, 10) for f in available_fish]
-
-                    # 確率に基づいて1匹選ぶ
-                    chosen_fish = random.choices(available_fish, weights=weights, k=1)[
-                        0
+                    weights_f = [
+                        RARITY_WEIGHTS.get(f.rarity, 10) for f in available_fish
                     ]
-                    drawn.append(chosen_fish)
+                    chosen_fish = random.choices(
+                        available_fish, weights=weights_f, k=1
+                    )[
+                        0
+                    ]  # 通常は重複なし
+                    normal_drawn.append(chosen_fish)
 
-                # 選ばれた魚を図鑑に登録して結果画面へ渡す
-                for f in drawn:
                     existing = UserCollection.query.filter_by(
-                        user_id=user.id, fish_id=f.id
+                        user_id=user.id, fish_id=chosen_fish.id
                     ).first()
                     if not existing:
-                        db.session.add(UserCollection(user_id=user.id, fish_id=f.id))
+                        db.session.add(
+                            UserCollection(user_id=user.id, fish_id=chosen_fish.id)
+                        )
 
                     obtained_fishes.append(
                         {
-                            "name": f.name,
-                            "image": f.image_file,
-                            "desc": f.details.get("biology", "石川の美味しい魚です。"),
+                            "name": chosen_fish.name,
+                            "image": chosen_fish.image_file,
+                            "desc": chosen_fish.details.get("biology", ""),
+                            "source": "normal",
                         }
                     )
             break
@@ -234,7 +366,6 @@ def roll_dice():
     user.last_dice_at = datetime.utcnow()
     db.session.commit()
 
-    # 次の港までの距離
     curr_idx = user.current_position_id % TOTAL_STEPS
     dists = [(p - curr_idx) % TOTAL_STEPS for p in PORTS.keys()]
     dist_to_next = min([d for d in dists if d > 0] or [TOTAL_STEPS])
@@ -245,12 +376,39 @@ def roll_dice():
             "actual_move": actual_move,
             "current_pos": user.current_position_id,
             "dist_to_next": dist_to_next,
-            "obtained_fishes": obtained_fishes,
+            "obtained_fishes": obtained_fishes,  # 網 + 通常 の合計リストが送られる
             "collection_status": f"{UserCollection.query.filter_by(user_id=user.id).count()}/{Fish.query.count()}",
             "remaining_dice": user.dice_count,
             "stopped_at_port": stopped_at_port,
+            "recovered_net": recovered_net,
+            "net_catch_count": net_catch_count,  # 網だけの獲得数を画面に伝える
+            "port_id": user.current_position_id % TOTAL_STEPS,
         }
     )
+
+
+@app.route("/api/place-net", methods=["POST"])
+def place_net():
+    """指定した港に網を設置するAPI"""
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.json
+    port_id = data.get("port_id")
+    net_type = data.get("net_type")
+    user_id = session["user_id"]
+
+    # 既にこの港に自分の網があるかチェック
+    existing_net = UserNet.query.filter_by(user_id=user_id, port_id=port_id).first()
+    if existing_net:
+        return jsonify({"error": "すでに網が設置されています"}), 400
+
+    # 新しい網を設置
+    new_net = UserNet(user_id=user_id, port_id=port_id, net_type=net_type)
+    db.session.add(new_net)
+    db.session.commit()
+
+    return jsonify({"success": True, "message": f"{net_type}を設置しました！"})
 
 
 @app.route("/api/collection")
@@ -293,6 +451,39 @@ def recover_dice():
     user.dice_count += 1
     db.session.commit()
     return jsonify({"success": True, "new_count": user.dice_count})
+
+
+@app.route("/admin/unlock-all", methods=["POST", "GET"])
+def admin_unlock_all():
+    """開発用: ログイン中ユーザーの魚を全解放"""
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    user = db.session.get(User, session["user_id"])
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    all_fishes = Fish.query.all()
+    owned_ids = {
+        c.fish_id for c in UserCollection.query.filter_by(user_id=user.id).all()
+    }
+
+    new_records = 0
+    for fish in all_fishes:
+        if fish.id not in owned_ids:
+            db.session.add(UserCollection(user_id=user.id, fish_id=fish.id))
+            new_records += 1
+
+    db.session.commit()
+
+    return jsonify(
+        {
+            "success": True,
+            "message": "全魚を解放しました",
+            "added": new_records,
+            "collection_status": f"{UserCollection.query.filter_by(user_id=user.id).count()}/{Fish.query.count()}",
+        }
+    )
 
 
 if __name__ == "__main__":

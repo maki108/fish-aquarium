@@ -92,6 +92,17 @@
         </div>
     </div>
 
+    <div id="net-pulling-overlay" class="fixed inset-0 bg-blue-900/90 backdrop-blur-sm hidden flex-col items-center justify-center z-[140]">
+        <div class="text-white text-3xl font-black mb-8 animate-pulse">⚓ 網を引き上げています... ⚓</div>
+        <div class="relative w-64 h-64 bg-blue-800/50 rounded-full overflow-hidden border-4 border-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.5)]">
+            <div class="absolute inset-0 flex items-end justify-center animate-[netPull_3s_ease-in-out_infinite]">
+                <span class="text-9xl opacity-80 drop-shadow-lg">🕸️</span>
+            </div>
+            <div class="absolute bottom-0 left-1/4 text-4xl animate-[bubble_2s_ease-in_infinite]">.。o○</div>
+            <div class="absolute bottom-0 right-1/4 text-3xl animate-[bubble_2.5s_ease-in_infinite_0.5s]">.。o○</div>
+        </div>
+    </div>
+
     <div id="fishing-overlay" class="fixed inset-0 bg-black/85 backdrop-blur-sm hidden flex-col items-center justify-center z-[110]">
         <div id="fishing-status" class="text-white text-2xl font-bold mb-8 transition-all duration-300">🎣 釣り糸を垂らしています...</div>
         
@@ -112,6 +123,22 @@
         </div>
     </div>
     
+    <div id="net-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-6 z-[120]">
+        <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm text-center shadow-2xl">
+            <h3 class="text-2xl font-black text-gray-800 mb-2 text-cyan-600">網を仕掛ける</h3>
+            <p class="text-xs text-gray-500 mb-6">次に来た時に大量に魚が獲れるぞ！</p>
+            
+            <div class="grid grid-cols-2 gap-3 mb-6 text-sm font-bold">
+                <button onclick="placeNet('まき網')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">まき網</button>
+                <button onclick="placeNet('刺し網')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">刺し網</button>
+                <button onclick="placeNet('定置網')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">定置網</button>
+                <button onclick="placeNet('底曳網')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">底曳網</button>
+                <button onclick="placeNet('曳網')" class="col-span-2 bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">曳網</button>
+            </div>
+            
+            <button onclick="closeNetModal()" class="w-full bg-gray-200 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-300 transition-colors">今は仕掛けない</button>
+        </div>
+    </div>
     <script src="{{ url_for('static', filename='js/game.js') }}"></script>
 
 </body>

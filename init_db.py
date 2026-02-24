@@ -4,7 +4,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash
 
 from app import app
-from models.database import Fish, Spot, User, db  # Userを追加
+from models.database import Fish, Spot, User, UserNet, db  # Userを追加
 
 
 def init_database():
