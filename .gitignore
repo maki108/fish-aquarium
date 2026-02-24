@@ -1,0 +1,17 @@
+# Database files
+*.db
+*.sqlite3
+instance/
+__pycache__/
+
+# Virtual environments
+.venv/
+venv/
+
+# uv related
+uv.lock
+.python-version
+.uv/
+.uv-cache/
+main.py
+pyproject.toml

@@ -49,21 +49,21 @@
         <div class="mt-8">
             <h3 class="text-left text-sm font-bold text-gray-700 mb-3 ml-1 text-xs">サイコロを追加でゲット</h3>
             <div class="grid grid-cols-2 gap-3">
-                <button onclick="recoverDice('x')" class="bg-blue-50 hover:bg-blue-100 p-4 rounded-2xl flex flex-col items-center justify-center transition-all active:scale-95 border border-blue-100 group">
-                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center mb-2 shadow-sm group-hover:shadow">
-                        <span class="text-xl text-blue-500 font-bold">𝕏</span>
-                    </div>
-                    <span class="text-[10px] font-bold text-gray-800">シェアする</span>
-                    <span class="text-[10px] font-bold text-cyan-600 mt-1">+1回</span>
-                </button>
+            <a href="https://twitter.com/intent/tweet?text=「石川さかな巡り」で石川の海を冒険中！🐟🎲 %23石川さかな巡り&url=http://127.0.0.1:5000" target="_blank" onclick="recoverDice('tweet')" class="bg-cyan-50 hover:bg-cyan-100 p-4 rounded-2xl flex flex-col items-center justify-center transition-all active:scale-95 border border-cyan-100 group cursor-pointer decoration-transparent">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center mb-2 shadow-sm group-hover:shadow">
+                    <span class="text-xl">𝕏</span>
+                </div>
+                <span class="text-[10px] font-bold text-gray-800 uppercase">シェア</span>
+                <span class="text-[10px] font-bold text-cyan-600 mt-1">+1回</span>
+            </a>
 
-                <button onclick="recoverDice('site')" class="bg-cyan-50 hover:bg-cyan-100 p-4 rounded-2xl flex flex-col items-center justify-center transition-all active:scale-95 border border-cyan-100 group">
-                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center mb-2 shadow-sm group-hover:shadow">
-                        <span class="text-xl">🌐</span>
-                    </div>
-                    <span class="text-[10px] font-bold text-gray-800 uppercase">観光サイト</span>
-                    <span class="text-[10px] font-bold text-cyan-600 mt-1">+1回</span>
-                </button>
+            <a href="https://www.hot-ishikawa.jp/" target="_blank" onclick="recoverDice('site')" class="bg-cyan-50 hover:bg-cyan-100 p-4 rounded-2xl flex flex-col items-center justify-center transition-all active:scale-95 border border-cyan-100 group cursor-pointer decoration-transparent">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center mb-2 shadow-sm group-hover:shadow">
+                    <span class="text-xl">🌐</span>
+                </div>
+                <span class="text-[10px] font-bold text-gray-800 uppercase">観光サイト</span>
+                <span class="text-[10px] font-bold text-cyan-600 mt-1">+1回</span>
+            </a>
             </div>
         </div>
     </main>
@@ -78,6 +78,9 @@
         <a href="/aquarium" class="flex flex-col items-center text-gray-400 hover:text-cyan-600 transition-colors">
             <span class="text-2xl">🌊</span><span class="text-[10px] font-bold">水族館</span>
         </a>
+        <a href="/logout" class="flex flex-col items-center text-gray-400 hover:text-red-500 transition-colors">
+            <span class="text-2xl">🚪</span><span class="text-[10px] font-bold">ログアウト</span>
+        </a>
     </nav>
 
     <div id="fish-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-6 z-[100]">
@@ -85,6 +88,17 @@
             <h3 class="text-2xl font-black text-gray-800 mb-6 text-cyan-600">今回の釣果</h3>
             <div id="fish-list" class="space-y-3 text-left max-h-[60vh] overflow-y-auto"></div>
             <button onclick="closeModal()" class="mt-8 w-full bg-gray-900 text-white py-4 rounded-2xl font-bold hover:bg-gray-800 transition-colors">冒険を続ける</button>
+        </div>
+    </div>
+
+    <div id="net-pulling-overlay" class="fixed inset-0 bg-blue-900/90 backdrop-blur-sm hidden flex-col items-center justify-center z-[140]">
+        <div class="text-white text-3xl font-black mb-8 animate-pulse">⚓ 網を引き上げています... ⚓</div>
+        <div class="relative w-64 h-64 bg-blue-800/50 rounded-full overflow-hidden border-4 border-blue-400 shadow-[0_0_30px_rgba(59,130,246,0.5)]">
+            <div class="absolute inset-0 flex items-end justify-center animate-[netPull_3s_ease-in-out_infinite]">
+                <span class="text-9xl opacity-80 drop-shadow-lg">🕸️</span>
+            </div>
+            <div class="absolute bottom-0 left-1/4 text-4xl animate-[bubble_2s_ease-in_infinite]">.。o○</div>
+            <div class="absolute bottom-0 right-1/4 text-3xl animate-[bubble_2.5s_ease-in_infinite_0.5s]">.。o○</div>
         </div>
     </div>
 
@@ -100,9 +114,14 @@
         <div id="fishing-result" class="hidden flex-col items-center w-full px-6 z-10">
             <div class="text-yellow-400 text-5xl font-black mb-8 italic tracking-widest drop-shadow-[0_0_15px_rgba(250,204,21,1)]">GET!!</div>
             <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-sm text-center shadow-2xl relative">
+<<<<<<< HEAD
                 
                 <div class="absolute -top-20 left-1/2 -translate-x-1/2 w-40 h-40 flex items-center justify-center drop-shadow-xl">
                     <img id="fishing-fish-img" src="" alt="釣れた魚" class="max-w-full max-h-full object-contain">
+=======
+               <div class="absolute -top-16 left-1/2 -translate-x-1/2 w-32 h-32 drop-shadow-xl flex items-center justify-center">
+                    <img id="fishing-fish-image" src="" alt="ゲットした魚" class="w-full h-full object-contain drop-shadow-lg">
+>>>>>>> f576b06563532850e1b4c16f720d3f2ec03ab19d
                 </div>
                 
                 <h3 id="fishing-fish-name" class="text-3xl font-black text-cyan-700 mt-12 mb-3">魚の名前</h3>
@@ -114,6 +133,27 @@
             </div>
         </div>
     </div>
+<<<<<<< HEAD
+=======
+    
+    <div id="net-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-6 z-[120]">
+        <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm text-center shadow-2xl">
+            <h3 class="text-2xl font-black text-gray-800 mb-2 text-cyan-600">網を仕掛ける</h3>
+            <p class="text-xs text-gray-500 mb-6">次に来た時に大量に魚が獲れるぞ！</p>
+            
+            <div class="grid grid-cols-2 gap-3 mb-6 text-sm font-bold">
+                <button onclick="placeNet('まき網')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">まき網</button>
+                <button onclick="placeNet('刺し網')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">刺し網</button>
+                <button onclick="placeNet('定置網')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">定置網</button>
+                <button onclick="placeNet('底曳網')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">底曳網</button>
+                <button onclick="placeNet('曳網')" class="col-span-2 bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">曳網</button>
+            </div>
+            
+            <button onclick="closeNetModal()" class="w-full bg-gray-200 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-300 transition-colors">今は仕掛けない</button>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+>>>>>>> f576b06563532850e1b4c16f720d3f2ec03ab19d
 
     <script src="{{ url_for('static', filename='js/game.js') }}"></script>
 </body>
