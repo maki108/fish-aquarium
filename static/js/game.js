@@ -133,31 +133,9 @@ async function rollDice() {
             diceResult.innerHTML = createDiceHtml(data.dice_val);
             updateGameScreen(data);
 
-<<<<<<< HEAD
             // ★ここで「釣り開始」を呼び出す
             if (data.obtained_fishes && data.obtained_fishes.length > 0) {
                 setTimeout(() => startFishing(data.obtained_fishes), 500);
-=======
-            // ▼港に止まった時のIDを記録（後で網を置くため）
-            if (data.stopped_at_port) {
-                window.currentPortId = data.port_id;
-            } else {
-                window.currentPortId = null;
-            }
-
-    if (data.obtained_fishes && data.obtained_fishes.length > 0) {
-                // ▼網を回収した場合は、新しい専用フローを開始！
-                if (data.recovered_net) {
-                    setTimeout(() => {
-                        // ここで新しく作った関数を呼ぶ
-                        startNetPulling(data.obtained_fishes, data.recovered_net, data.net_catch_count);
-                    }, 500);
-                    
-                } else {
-                    // 通常の場合は、今まで通りの釣りアニメーション
-                    setTimeout(() => startFishing(data.obtained_fishes), 500);
-                }
->>>>>>> f576b06563532850e1b4c16f720d3f2ec03ab19d
             }
 
             button.disabled = false;
@@ -288,10 +266,6 @@ function startFishing(fishes) {
     processNextCatch();
 }
 
-<<<<<<< HEAD
-=======
-// 1匹ずつ釣り上げる処理（網・通常のハイブリッド対応）
->>>>>>> f576b06563532850e1b4c16f720d3f2ec03ab19d
 function processNextCatch() {
     const lineContainer = document.getElementById('fishing-line-container');
     const line = document.getElementById('fishing-line');
@@ -306,16 +280,9 @@ function processNextCatch() {
         return;
     }
 
-<<<<<<< HEAD
     const currentFish = catchQueue.shift();
 
     // 演出リセット
-=======
-    const currentFish = catchQueue.shift(); // 最初の1匹を取り出す
-    const isNet = currentFish.source === 'net'; // 網かどうかの判定
-
-    // 演出をリセット
->>>>>>> f576b06563532850e1b4c16f720d3f2ec03ab19d
     resultEl.classList.add('hidden');
     resultEl.classList.remove('fish-pop-animation');
     
@@ -328,7 +295,6 @@ function processNextCatch() {
     line.classList.add('animate-drop-line');
     bobber.classList.add('animate-bobber');
 
-<<<<<<< HEAD
     const waitTime = 1000 + Math.random() * 1500;
     
     setTimeout(() => {
@@ -351,64 +317,6 @@ function processNextCatch() {
 
         }, 800);
     }, waitTime);
-=======
-    if (isNet) {
-        // ==========================
-        // 【網の場合】アニメーションなしで即ポップアップ
-        // ==========================
-        statusEl.classList.add('hidden');
-        if (getTitleEl) getTitleEl.innerHTML = "🕸️ 網でGET!!"; // タイトル変更
-        
-        document.getElementById('fishing-fish-name').innerText = currentFish.name;
-        document.getElementById('fishing-fish-desc').innerText = currentFish.desc;
-        document.getElementById('fishing-fish-image').src = `/static/images/fish/${currentFish.image}`;
-        
-        const btn = document.getElementById('fishing-next-btn');
-        // 次の魚が「通常」に切り替わるタイミングならボタンの文字を変える
-        if (catchQueue.length > 0 && catchQueue[0].source === 'normal') {
-            btn.innerText = "次は通常の釣りへ 🎣";
-        } else {
-            btn.innerText = catchQueue.length > 0 ? "次の魚を見る 🕸️" : "釣果まとめを見る";
-        }
-        
-        resultEl.classList.remove('hidden');
-        resultEl.classList.add('flex', 'fish-pop-animation');
-
-    } else {
-        // ==========================
-        // 【通常の場合】ウキが沈むアニメーション
-        // ==========================
-        if (getTitleEl) getTitleEl.innerHTML = "🎣 釣りでGET!!"; // タイトル変更
-
-        statusEl.classList.remove('hidden', 'text-red-400', 'scale-150', 'hit-animation');
-        statusEl.classList.add('text-white', 'animate-pulse');
-        statusEl.innerText = "🎣 釣り糸を垂らしています...";
-        
-        const waitTime = 1000 + Math.random() * 1000;
-        
-        setTimeout(() => {
-            statusEl.classList.remove('animate-pulse', 'text-white');
-            statusEl.classList.add('text-red-400', 'scale-150', 'hit-animation');
-            statusEl.innerText = "⚡ ヒット！！ ⚡";
-            
-            setTimeout(() => {
-                statusEl.classList.add('hidden');
-                statusEl.classList.remove('hit-animation');
-                
-                document.getElementById('fishing-fish-name').innerText = currentFish.name;
-                document.getElementById('fishing-fish-desc').innerText = currentFish.desc;
-                document.getElementById('fishing-fish-image').src = `/static/images/fish/${currentFish.image}`;
-                
-                const btn = document.getElementById('fishing-next-btn');
-                btn.innerText = catchQueue.length > 0 ? "次の魚を釣る 🎣" : "釣果まとめを見る";
-                
-                resultEl.classList.remove('hidden');
-                resultEl.classList.add('flex', 'fish-pop-animation');
-
-            }, 800); 
-        }, waitTime);
-    }
->>>>>>> f576b06563532850e1b4c16f720d3f2ec03ab19d
 }
 
 function nextCatch() {

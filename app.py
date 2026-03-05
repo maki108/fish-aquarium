@@ -192,25 +192,42 @@ def encyclopedia():
     return render_template("encyclopedia.html")
 
 
+AQUARIUM_STAGES = {
+    1: {"name": "ステージ1", "wallpaper": "ver1.png"},
+    2: {"name": "ステージ2", "wallpaper": "ver2.png"},
+    3: {"name": "ステージ3", "wallpaper": "ver3.png"},
+    4: {"name": "ステージ4", "wallpaper": "ver4.png"},
+    5: {"name": "ステージ5", "wallpaper": "ver5.png"},
+    6: {"name": "ステージ6", "wallpaper": "ver6.png"},
+    7: {"name": "ステージ7", "wallpaper": "ver7.png"},
+}
+
+
+from flask import abort  # 先頭の import に追加してOK
+
 @app.route("/aquarium")
 def aquarium():
+    # デフォルトはステージ1
+    return redirect(url_for("aquarium_stage", stage_id=1))
+
+@app.route("/aquarium/stage/<int:stage_id>")
+def aquarium_stage(stage_id: int):
+    stage = AQUARIUM_STAGES.get(stage_id)
+    if not stage:
+        abort(404)
+
     return render_template(
         "aquarium.html",
-        stage_id=1,
-        stage_name="ステージ1",
-        wallpaper_file="ver1.png",
+        stage_id=stage_id,
+        stage_name=stage["name"],
+        wallpaper_file=stage["wallpaper"],
+        stage_max=max(AQUARIUM_STAGES.keys()),
     )
 
-
-@app.route("/aquarium/stage2")
-def aquarium_stage2():
-    return render_template(
-        "aquarium.html",
-        stage_id=2,
-        stage_name="ステージ2",
-        wallpaper_file="ver7.png",
-    )
-
+# 互換：既存URLを壊したくない場合だけ残す
+# @app.route("/aquarium/stage2")
+# def aquarium_stage2_compat():
+#     return redirect(url_for("aquarium_stage", stage_id=2))
 
 # ---------------------------------------------------------
 # APIエンドポイント
