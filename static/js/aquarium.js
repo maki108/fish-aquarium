@@ -80,59 +80,39 @@ fishEl.style.animation = `breathe ${4 + Math.random() * 2}s ease-in-out infinite
 
 // 3. 泳ぐ魚の場合（これまで通り）
 
+// 3. 泳ぐ魚の場合（これまで通り）
 } else {
+  fishEl.dataset.behavior = 'swim';
 
-fishEl.dataset.behavior = 'swim';
+  const isSwimRight = Math.random() > 0.5;
+  const movementPattern = ['glide', 'wave', 'dart'][Math.floor(Math.random() * 3)];
 
-const isSwimRight = Math.random() > 0.5;
+  let duration = 18 + Math.random() * 18;
+  let motionName = 'fish-glide';
+  let motionDuration = 4.5 + Math.random() * 2.5;
+  let motionTiming = 'ease-in-out';
 
-const movementPattern = ['glide', 'wave', 'dart'][Math.floor(Math.random() * 3)];
+  if (movementPattern === 'wave') {
+    duration = 16 + Math.random() * 14;
+    motionName = 'fish-wave';
+    motionDuration = 3.5 + Math.random() * 2;
+    motionTiming = 'ease-in-out';
+  } else if (movementPattern === 'dart') {
+    duration = 11 + Math.random() * 10;
+    motionName = 'fish-dart';
+    motionDuration = 2.2 + Math.random() * 1.4;
+    motionTiming = 'cubic-bezier(0.4, 0, 0.2, 1)';
+  }
 
-let duration = 18 + Math.random() * 18;
-let motionName = 'fish-glide';
-let motionDuration = 4.5 + Math.random() * 2.5;
-let motionTiming = 'ease-in-out';
+  // ★ここではまだ animation を入れない（後で入れる）
+  fishEl.dataset.motionName = motionName;
+  fishEl.dataset.motionDuration = `${motionDuration}`;
+  fishEl.dataset.motionTiming = motionTiming;
+  fishEl.dataset.swimDirection = isSwimRight ? 'right' : 'left';
+  fishEl.dataset.direction = isSwimRight ? 'right' : 'left';
 
-if (movementPattern === 'wave') {
-duration = 16 + Math.random() * 14;
-motionName = 'fish-wave';
-motionDuration = 3.5 + Math.random() * 2;
-motionTiming = 'ease-in-out';
-} else if (movementPattern === 'dart') {
-duration = 11 + Math.random() * 10;
-motionName = 'fish-dart';
-motionDuration = 2.2 + Math.random() * 1.4;
-motionTiming = 'cubic-bezier(0.4, 0, 0.2, 1)';
-}
-
-const delay = Math.random() * -20;
-
-fishEl.style.animationName = `${isSwimRight ? 'swimRight' : 'swimLeft'}, ${motionName}`;
-fishEl.style.animationDuration = `${duration}s, ${motionDuration}s`;
-fishEl.style.animationTimingFunction = `linear, ${motionTiming}`;
-fishEl.style.animationDelay = `${delay}s, ${Math.random() * -3}s`;
-fishEl.style.animationIterationCount = 'infinite, infinite';
-
-fishEl.dataset.motionName = motionName;
-fishEl.dataset.motionDuration = `${motionDuration}`;
-fishEl.dataset.motionTiming = motionTiming;
-fishEl.dataset.swimSpeed = `${(tank.scrollWidth * 1.3) / duration}`;
-fishEl.dataset.swimDirection = isSwimRight ? 'right' : 'left';
-
-fishEl.style.top = `${5 + Math.random() * 60}%`; // 上空〜中層
-
-
-
-// 魚の向き反転ロジック
-
-if (isSwimRight) {
-
-// 右へ泳ぐ時、画像自体を反転させるクラスを追加するためのデータ属性
-
-fishEl.dataset.direction = 'right';
-
-}
-
+  fishEl.style.top = `${5 + Math.random() * 60}%`;
+  fishEl.style.left = `${Math.random() * 80}%`; // 初期位置も置いておく
 }
 
 
@@ -166,6 +146,15 @@ fishEl.onclick = () => showTalkBubble(fish.name);
 
 
 tank.appendChild(fishEl);
+if (fishEl.dataset.behavior === 'swim') {
+  // 現在位置をpxに固定してから
+  pinFishAtCurrentPosition(fishEl, tank.parentElement);
+  attachAutonomousSwim(fishEl, tank);
+}
+
+if (fishEl.dataset.behavior === 'bottom') {
+  attachBottomBehavior(fishEl, tank);
+}
 
 });
 
@@ -182,40 +171,44 @@ console.error("水族館の読み込みに失敗しました", e);
 // 2. 泡を生成する演出
 
 function createBubbles() {
+  const bg = document.getElementById('bubble-container');
+  const fg = document.getElementById('bubble-container-fg');
+  const tank = document.getElementById('fish-tank');
+  if (!bg || !fg || !tank) return;
 
-const container = document.getElementById('bubble-container');
-const tank = document.getElementById('fish-tank');
+  bg.innerHTML = '';
+  fg.innerHTML = '';
 
-if (!container || !tank) return;
+  // スクロール領域全体に泡をばらまく
+  const w = tank.scrollWidth;
+  const bgCount = Math.max(18, Math.floor(w / 80));
+  const fgCount = Math.max(10, Math.floor(w / 140));
 
-container.innerHTML = '';
+  // 遠景泡（小さめ・多め）
+  for (let i = 0; i < bgCount; i++) {
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    const size = 8 + Math.random() * 18;
+    b.style.width = `${size}px`;
+    b.style.height = `${size}px`;
+    b.style.left = `${Math.random() * w}px`;
+    b.style.animationDelay = `${Math.random() * 10}s`;
+    b.style.animationDuration = `${10 + Math.random() * 10}s`;
+    bg.appendChild(b);
+  }
 
-const bubbleCount = Math.max(15, Math.floor(tank.scrollWidth / 90));
-
-
-for (let i = 0; i < bubbleCount; i++) {
-
-const b = document.createElement('div');
-
-b.className = 'bubble';
-
-
-const size = 10 + Math.random() * 20; // 泡の大きさ
-
-b.style.width = `${size}px`;
-
-b.style.height = `${size}px`;
-
-b.style.left = `${Math.random() * tank.scrollWidth}px`; // 横位置（スクロール領域全体）
-
-b.style.animationDelay = `${Math.random() * 10}s`; // 開始のズレ
-b.style.animationDuration = `${8 + Math.random() * 6}s`;
-
-
-container.appendChild(b);
-
-}
-
+  // 前景泡（やや大きめ・少なめ・ぼけ）
+  for (let i = 0; i < fgCount; i++) {
+    const b = document.createElement('div');
+    b.className = 'bubble fg';
+    const size = 18 + Math.random() * 28;
+    b.style.width = `${size}px`;
+    b.style.height = `${size}px`;
+    b.style.left = `${Math.random() * w}px`;
+    b.style.animationDelay = `${Math.random() * 8}s`;
+    b.style.animationDuration = `${8 + Math.random() * 8}s`;
+    fg.appendChild(b);
+  }
 }
 
 
@@ -383,6 +376,7 @@ nearestFish.followResetTimer = null;
 }
 
 pinFishAtCurrentPosition(nearestFish, scrollArea);
+nearestFish._followMode = true;
 
 const fishWidth = nearestFish.offsetWidth || 80;
 const fishHeight = nearestFish.offsetHeight || 80;
@@ -407,8 +401,19 @@ nearestFish.style.left = `${nextLeft}px`;
 nearestFish.style.top = `${nextTop}px`;
 
 nearestFish.followResetTimer = setTimeout(() => {
-continueSwimFromCurrentPosition(nearestFish, tank);
-nearestFish.followResetTimer = null;
+  // transition解除
+  nearestFish.style.transition = 'none';
+
+  // いまいる場所をpxで確定
+  pinFishAtCurrentPosition(nearestFish, scrollArea);
+
+  // ★自律遊泳へ戻す：followMode OFF が正解
+  nearestFish._followMode = false;
+
+  // stateを現在位置から再同期
+  attachAutonomousSwim(nearestFish, tank);
+
+  nearestFish.followResetTimer = null;
 }, 1300);
 
 activeFollowerFish = nearestFish;
@@ -419,49 +424,48 @@ activeFollowerFish = nearestFish;
 // 2.5 タップ・クリック時の波紋演出
 
 function setupWaterRipple() {
+  const tank = document.getElementById('fish-tank');
+  if (!tank || !tank.parentElement) return;
+  const scrollArea = tank.parentElement;
 
-const tank = document.getElementById('fish-tank');
+  scrollArea.addEventListener('pointerdown', (event) => {
+    const rect = scrollArea.getBoundingClientRect();
 
-if (!tank || !tank.parentElement) return;
+    // scrollArea内座標
+    const xInScroll = event.clientX - rect.left + scrollArea.scrollLeft;
+    const yInScroll = event.clientY - rect.top;
 
-const scrollArea = tank.parentElement;
+    // ★tank内座標に変換（タンクはスクロール領域の中にある）
+    const tankRect = tank.getBoundingClientRect();
+    const x = xInScroll; // tankは横スクロール=scrollLeft込みでOK
+    const y = (event.clientY - tankRect.top); // ★tank基準のy
 
+    const ripple = document.createElement('span');
+    ripple.className = 'water-ripple';
+    ripple.style.left = `${x}px`;
+    ripple.style.top = `${y}px`;
 
+    tank.appendChild(ripple);
+    moveNearestFishToPoint(x, y, scrollArea);
 
-scrollArea.addEventListener('pointerdown', (event) => {
+    setTimeout(() => ripple.remove(), 900);
+  });
 
-const rect = scrollArea.getBoundingClientRect();
+  scrollArea.addEventListener('scroll', () => {
+    const tank = document.getElementById('fish-tank');
+    if (!tank) return;
+    const vp = getViewportBounds(tank);
 
-const x = event.clientX - rect.left + scrollArea.scrollLeft;
+    const fishes = Array.from(tank.querySelectorAll('[data-behavior="swim"]'));
+    for (const fishEl of fishes) {
+      const st = fishEl._swimState;
+      if (!st || fishEl._followMode) continue;
 
-const y = event.clientY - rect.top;
-
-
-
-const ripple = document.createElement('span');
-
-ripple.className = 'water-ripple';
-
-ripple.style.left = `${x}px`;
-
-ripple.style.top = `${y}px`;
-
-
-
-tank.appendChild(ripple);
-
-moveNearestFishToPoint(x, y, scrollArea);
-
-
-
-setTimeout(() => {
-
-ripple.remove();
-
-}, 900);
-
-});
-
+      // スクロールで大きく外に置いていかれた魚は、見える範囲へ寄せる
+      if (st.x < vp.left - vp.width * 0.8) st.x = vp.left + Math.random() * vp.width * 0.2;
+      if (st.x > vp.right + vp.width * 0.8) st.x = vp.right - (fishEl.offsetWidth || 80) - Math.random() * vp.width * 0.2;
+    }
+  }, { passive: true });  
 }
 
 
@@ -519,6 +523,7 @@ bubble.classList.remove('animate-bounce');
 window.addEventListener('DOMContentLoaded', () => {
 
 loadAquarium();
+startAutonomousSwimLoop();
 
 // createBubbles関数がある場合は実行
 
@@ -528,3 +533,223 @@ if (typeof createLightParticles === 'function') createLightParticles();
 setupWaterRipple();
 
 });
+
+// =========================
+// リアル寄り：自律遊泳（swim魚用）
+// =========================
+function attachAutonomousSwim(fishEl, tank) {
+  // ★depthは初回だけ固定
+  const depth = (fishEl._depth ?? Math.random());
+  fishEl._depth = depth;
+
+  const baseScale = 0.75 + depth * 0.35;
+  fishEl.style.transform = `scale(${baseScale})`;
+  fishEl.style.opacity = `${0.55 + depth * 0.45}`;
+  fishEl.style.filter = `blur(${(1 - depth) * 0.6}px)`;
+  fishEl.style.willChange = 'transform,left,top';
+
+  // CSSアニメは切る
+  fishEl.style.animationName = 'none';
+
+  // ★fishの現在位置を tank 座標(px)で取り直す
+  const fishRect = fishEl.getBoundingClientRect();
+  const tankRect = tank.getBoundingClientRect();
+  const x0 = fishRect.left - tankRect.left;
+  const y0 = fishRect.top - tankRect.top;
+
+  // 既存stateがあれば座標だけ更新、なければ新規
+  const st = fishEl._swimState || {
+    x: 0, y: 0,
+    vx: (Math.random() > 0.5 ? 1 : -1) * (35 + depth * 55),
+    vy: (Math.random() - 0.5) * 8,
+    targetVx: 0,
+    driftPhase: Math.random() * Math.PI * 2,
+    driftAmp: 6 + Math.random() * 10,
+    driftSpeed: 0.6 + Math.random() * 0.8,
+    changeTimer: 0,
+  };
+
+  st.x = isFinite(x0) ? x0 : (st.x || Math.random() * tank.scrollWidth);
+  st.y = isFinite(y0) ? y0 : (st.y || (0.1 + Math.random() * 0.6) * tank.clientHeight);
+
+  // 追従直後は少し落ち着かせる
+  st.changeTimer = 0.4 + Math.random() * 0.8;
+
+  fishEl._swimState = st;
+}
+
+
+let _swimRAF = null;
+function startAutonomousSwimLoop() {
+  if (_swimRAF) return;
+
+  let last = performance.now();
+  const tick = (now) => {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+
+    const tank = document.getElementById('fish-tank');
+    if (tank) {
+      const fishes = Array.from(tank.querySelectorAll('[data-behavior="swim"]'));
+
+      for (const fishEl of fishes) {
+        const st = fishEl._swimState;
+        if (fishEl._followMode) continue;
+        if (!st) continue;
+
+        const fishW = fishEl.offsetWidth || 80;
+
+        // ★薄くしない：透明度は固定
+        fishEl.style.opacity = '1';
+
+        // ★depthは opacity から取らない（固定値を使う）
+        const depth = (typeof fishEl._depth === 'number') ? fishEl._depth : 0.6;
+
+        // たまに速度・方向を少し変える（リアル感）
+        st.changeTimer -= dt;
+        if (st.changeTimer <= 0) {
+          st.changeTimer = 1.2 + Math.random() * 2.8;
+
+          const base = 35 + Math.max(0, Math.min(1, depth)) * 55;
+
+          // たまに小ダッシュ
+          const dash = Math.random() < 0.18 ? (1.35 + Math.random() * 0.9) : 1.0;
+
+          // 方向は維持しつつ微調整
+          const dir = Math.sign(st.vx) || 1;
+          st.targetVx = dir * base * dash;
+          st.vy += (Math.random() - 0.5) * 10;
+        }
+
+        // target へなめらかに追従
+        st.vx += (st.targetVx - st.vx) * 0.9 * dt;
+
+        // 漂い（上下のゆらぎ）
+        st.driftPhase += st.driftSpeed * dt;
+        const drift = Math.sin(st.driftPhase) * st.driftAmp;
+
+        // 更新
+        st.x += st.vx * dt;
+        st.y += st.vy * dt + drift * dt;
+
+        // ★いま見えてる範囲を基準にする（画面外に長居させない）
+        const vp = getViewportBounds(tank);
+
+        const marginX = Math.max(40, vp.width * 0.18);
+        const minX = vp.left - marginX;
+        const maxX = vp.right + marginX - fishW;
+
+        const minY = vp.height * 0.06;
+        const maxY = vp.height * 0.78;
+
+        // ★ソフトクランプ
+        const pull = 2.2;
+        if (st.x < minX) st.vx += pull * (minX - st.x) * dt;
+        if (st.x > maxX) st.vx -= pull * (st.x - maxX) * dt;
+
+        const pullY = 1.2;
+        if (st.y < minY) st.vy += pullY * (minY - st.y) * dt;
+        if (st.y > maxY) st.vy -= pullY * (st.y - maxY) * dt;
+
+        // 瞬間リカバリ
+        const hardMargin = vp.width * 0.6;
+        if (st.x < vp.left - hardMargin) st.x = vp.left + Math.random() * vp.width * 0.2;
+        if (st.x > vp.right + hardMargin) st.x = vp.right - fishW - Math.random() * vp.width * 0.2;
+
+        // 反転（向き）
+        const fishBody = fishEl.querySelector('.fish-body');
+        if (fishBody) {
+          fishBody.style.transform = (st.vx >= 0) ? 'scaleX(-1)' : 'scaleX(1)';
+        }
+
+        // 描画
+        fishEl.style.left = `${st.x}px`;
+        fishEl.style.top = `${st.y}px`;
+        fishEl.style.bottom = 'auto';
+      }
+    }
+
+    _swimRAF = requestAnimationFrame(tick);
+  };
+
+  _swimRAF = requestAnimationFrame(tick);
+}
+
+function getViewportBounds(tank) {
+  const scrollArea = tank.parentElement; // overflow-x-auto のdiv
+  const left = scrollArea.scrollLeft;
+  const right = left + scrollArea.clientWidth;
+  const top = 0;
+  const bottom = tank.clientHeight;
+  return { left, right, top, bottom, width: scrollArea.clientWidth, height: tank.clientHeight };
+}
+
+// =========================
+// 底生（動かない魚・甲殻類）: 微動 + たまに少し移動
+// =========================
+function attachBottomBehavior(fishEl, tank) {
+  const scrollArea = tank.parentElement;
+
+  // まず「いまの位置」をpx固定（%のままだと移動が崩れやすい）
+  pinFishAtCurrentPosition(fishEl, scrollArea);
+
+  // 常時：微動（呼吸っぽい）
+  // ※ breathe は既にCSSにある前提（あなたの現状コードと一致）
+  fishEl.style.animation = `breathe ${4 + Math.random() * 2}s ease-in-out infinite`;
+
+  // 状態
+  const st = {
+    x: parseFloat(fishEl.style.left) || 0,
+    y: parseFloat(fishEl.style.top) || 0,
+    nextMoveAt: performance.now() + (7000 + Math.random() * 9000), // 7〜16秒後に最初の移動
+  };
+  fishEl._bottomState = st;
+
+  const step = (now) => {
+    if (!document.body.contains(fishEl)) return;
+
+    if (now >= st.nextMoveAt) {
+      st.nextMoveAt = now + (12000 + Math.random() * 20000); // 次は 12〜32秒後
+
+      // “ちょい移動”だけ（大移動しない）
+      const dx = (Math.random() < 0.5 ? -1 : 1) * (6 + Math.random() * 18); // 6〜24px
+      const dy = (Math.random() - 0.5) * 4; // 縦はほぼ動かない
+
+      // 画面に見えてる範囲を基準にクランプ（画面外に行かせない）
+      const vp = getViewportBounds(tank);
+
+      const fishW = fishEl.offsetWidth || 80;
+      const fishH = fishEl.offsetHeight || 80;
+
+      // 底の帯域：画面高さの 72%〜92% あたり
+      const minY = vp.height * 0.85;
+      const maxY = vp.height * 0.99 - fishH;
+
+      // 左右は “少し余白” を残して範囲内へ
+      const minX = vp.left + 16;
+      const maxX = vp.right - fishW - 16;
+
+      st.x = Math.max(minX, Math.min(maxX, st.x + dx));
+      st.y = Math.max(minY, Math.min(maxY, st.y + dy));
+
+      // 向きだけ合わせる（生きてる感UP）
+      const body = fishEl.querySelector('.fish-body');
+      if (body) body.style.transform = dx >= 0 ? 'scaleX(-1)' : 'scaleX(1)';
+
+      // ぬるっと移動
+      fishEl.style.transition = 'left 1.4s ease-in-out, top 1.4s ease-in-out';
+      fishEl.style.left = `${st.x}px`;
+      fishEl.style.top  = `${st.y}px`;
+
+      // 移動後はtransitionを切っておく（他処理と干渉しにくい）
+      setTimeout(() => {
+        if (!document.body.contains(fishEl)) return;
+        fishEl.style.transition = 'none';
+      }, 1600);
+    }
+
+    requestAnimationFrame(step);
+  };
+
+  requestAnimationFrame(step);
+}
