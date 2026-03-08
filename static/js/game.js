@@ -211,17 +211,40 @@ async function rollDice() {
             return;
         }
 
-        setTimeout(() => {
-            diceResult.innerHTML = createDiceHtml(data.dice_val);
-            updateGameScreen(data);
+        // 1. サイコロが回る演出を少し見せる (600ミリ秒待機)
+        await sleep(600);
 
-            // ★ここで「釣り開始」を呼び出す
-            if (data.obtained_fishes && data.obtained_fishes.length > 0) {
+        // 2. サイコロの出目を表示
+        diceResult.innerHTML = createDiceHtml(data.dice_val);
+
+        // 3. コマを1マスずつ動かすアニメーションを実行！
+        // (現在の位置から進んだ数を引いて、スタート地点を逆算)
+        const oldPos = data.current_pos - data.actual_move;
+        await animatePlayerMovement(oldPos, data.actual_move);
+
+        // 4. 移動が完全に終わってから、港の名前や残りマス数を更新
+        updateGameScreen(data);
+
+        // 5. 止まったマスに応じたイベントを発生させる
+        const finalStep = data.current_pos % TOTAL_STEPS;
+
+        if (data.obtained_fishes && data.obtained_fishes.length > 0) {
+            // 港マスに止まった時の処理（網回収 または 通常釣り）
+            if (data.recovered_net) {
+                setTimeout(() => {
+                    startNetPulling(data.obtained_fishes, data.recovered_net, data.net_catch_count);
+                }, 500);
+            } else {
                 setTimeout(() => startFishing(data.obtained_fishes), 500);
             }
+        } else if (QUIZ_STEPS.has(finalStep)) {
+            // クイズマス（黄色マス）に止まった時の処理
+            setTimeout(() => {
+                showQuizModal();
+            }, 500);
+        }
 
-            button.disabled = false;
-        }, 600);
+        button.disabled = false;
 
     } catch (e) {
         console.error(e);
@@ -603,4 +626,33 @@ function showBigCatchEffect(fishes, netType, netCatchCount) {
             startFishing(fishes);
         }, 500);
     }, 3000);
+}
+
+// ==========================================
+// コマの移動アニメーション
+// ==========================================
+
+// 指定したミリ秒だけ待機する関数
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// 1マスずつ順番にコマを動かす処理
+async function animatePlayerMovement(startPos, actualMove) {
+    const player = document.getElementById('player-piece');
+    player.style.display = 'flex';
+
+    for (let i = 1; i <= actualMove; i++) {
+        // 次の移動先のマスの番号を計算
+        let step = (startPos + i) % TOTAL_STEPS;
+        let coord = MAP_COORDINATES[step];
+
+        if (coord) {
+            // コマの位置を更新
+            player.style.left = `${coord.x}%`;
+            player.style.top = `${coord.y}%`;
+        }
+        
+        // 次のマスへ動く前に少し待つ（400ミリ秒）
+        // ※HTML側のコマのCSS「duration-500」と組み合わさって滑らかに動きます
+        await sleep(400); 
+    }
 }
