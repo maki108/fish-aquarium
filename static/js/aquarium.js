@@ -26,6 +26,8 @@ const tank = document.getElementById('fish-tank');
 const myFishes = data.filter(f => f.is_owned);
 
 
+const placedBottomSlots = [];
+const placedSeaweedSlots = [];
 
 // ★ 生き物の分類リスト
 
@@ -43,7 +45,7 @@ const fishEl = document.createElement('div');
 
 fishEl.className = 'absolute z-10 flex flex-col items-center justify-center transition-all duration-300 cursor-pointer';
 
-
+fishEl.dataset.fishName = fish.name;
 
 // --- 動きと位置の決定 ---
 
@@ -67,14 +69,21 @@ fishEl.style.transformOrigin = 'bottom center'; // 下を軸に揺れる
 // 2. 底の生き物の場合（底でじっとする）
 
 } else if (bottomCreatures.some(name => fish.name.includes(name))) {
+  fishEl.dataset.behavior = 'bottom';
 
-fishEl.dataset.behavior = 'bottom';
+  const pos = findNonOverlappingBottomPosition(placedBottomSlots, {
+    minLeft: 5,
+    maxLeft: 95,
+    minBottom: 2,
+    maxBottom: 12,
+    minDistanceX: 12,
+    minDistanceY: 7,
+    maxTries: 80
+  });
 
-fishEl.style.bottom = `${2 + Math.random() * 10}%`; // 底付近
-
-fishEl.style.left = `${5 + Math.random() * 90}%`; // 横位置ランダム
-
-fishEl.style.animation = `breathe ${4 + Math.random() * 2}s ease-in-out infinite`; // 呼吸するように微妙に動く
+  fishEl.style.bottom = `${pos.bottom}%`;
+  fishEl.style.left = `${pos.left}%`;
+  fishEl.style.animation = `breathe ${4 + Math.random() * 2}s ease-in-out infinite`;
 
 
 
@@ -158,6 +167,9 @@ if (fishEl.dataset.behavior === 'bottom') {
 
 });
 
+buildFishVisibilityPanel(myFishes);
+applyFishVisibility();
+
 } catch (e) {
 
 console.error("水族館の読み込みに失敗しました", e);
@@ -167,7 +179,42 @@ console.error("水族館の読み込みに失敗しました", e);
 }
 
 
+function findNonOverlappingBottomPosition(placed, options = {}) {
+  const {
+    minLeft = 5,
+    maxLeft = 95,
+    minBottom = 2,
+    maxBottom = 12,
+    minDistanceX = 10,   // 横方向の最小間隔（%）
+    minDistanceY = 6,    // 縦方向の最小間隔（%）
+    maxTries = 50
+  } = options;
 
+  for (let i = 0; i < maxTries; i++) {
+    const left = minLeft + Math.random() * (maxLeft - minLeft);
+    const bottom = minBottom + Math.random() * (maxBottom - minBottom);
+
+    const overlapped = placed.some(pos => {
+      return (
+        Math.abs(pos.left - left) < minDistanceX &&
+        Math.abs(pos.bottom - bottom) < minDistanceY
+      );
+    });
+
+    if (!overlapped) {
+      placed.push({ left, bottom });
+      return { left, bottom };
+    }
+  }
+
+  // どうしても空きがなければ最後は妥協
+  const fallback = {
+    left: minLeft + Math.random() * (maxLeft - minLeft),
+    bottom: minBottom + Math.random() * (maxBottom - minBottom)
+  };
+  placed.push(fallback);
+  return fallback;
+}
 // 2. 泡を生成する演出
 
 function createBubbles() {
@@ -461,11 +508,10 @@ function setupWaterRipple() {
       const st = fishEl._swimState;
       if (!st || fishEl._followMode) continue;
 
-      // スクロールで大きく外に置いていかれた魚は、見える範囲へ寄せる
       if (st.x < vp.left - vp.width * 0.8) st.x = vp.left + Math.random() * vp.width * 0.2;
       if (st.x > vp.right + vp.width * 0.8) st.x = vp.right - (fishEl.offsetWidth || 80) - Math.random() * vp.width * 0.2;
     }
-  }, { passive: true });  
+  }, { passive: true });
 }
 
 
@@ -522,6 +568,7 @@ bubble.classList.remove('animate-bounce');
 
 window.addEventListener('DOMContentLoaded', () => {
 
+setupVisibilityPanel();  
 loadAquarium();
 startAutonomousSwimLoop();
 
@@ -636,11 +683,11 @@ function startAutonomousSwimLoop() {
         const vp = getViewportBounds(tank);
 
         const marginX = Math.max(40, vp.width * 0.18);
-        const minX = vp.left - marginX;
-        const maxX = vp.right + marginX - fishW;
+        const minX = 0;
+        const maxX = tank.scrollWidth - fishW;
 
-        const minY = vp.height * 0.06;
-        const maxY = vp.height * 0.78;
+        const minY = tank.clientHeight * 0.06;
+        const maxY = tank.clientHeight * 0.78;
 
         // ★ソフトクランプ
         const pull = 2.2;
@@ -652,9 +699,7 @@ function startAutonomousSwimLoop() {
         if (st.y > maxY) st.vy -= pullY * (st.y - maxY) * dt;
 
         // 瞬間リカバリ
-        const hardMargin = vp.width * 0.6;
-        if (st.x < vp.left - hardMargin) st.x = vp.left + Math.random() * vp.width * 0.2;
-        if (st.x > vp.right + hardMargin) st.x = vp.right - fishW - Math.random() * vp.width * 0.2;
+
 
         // 反転（向き）
         const fishBody = fishEl.querySelector('.fish-body');
@@ -690,18 +735,17 @@ function getViewportBounds(tank) {
 function attachBottomBehavior(fishEl, tank) {
   const scrollArea = tank.parentElement;
 
-  // まず「いまの位置」をpx固定（%のままだと移動が崩れやすい）
+  // まず「いまの位置」をpx固定
   pinFishAtCurrentPosition(fishEl, scrollArea);
 
   // 常時：微動（呼吸っぽい）
-  // ※ breathe は既にCSSにある前提（あなたの現状コードと一致）
   fishEl.style.animation = `breathe ${4 + Math.random() * 2}s ease-in-out infinite`;
 
   // 状態
   const st = {
     x: parseFloat(fishEl.style.left) || 0,
     y: parseFloat(fishEl.style.top) || 0,
-    nextMoveAt: performance.now() + (7000 + Math.random() * 9000), // 7〜16秒後に最初の移動
+    nextMoveAt: performance.now() + (7000 + Math.random() * 9000),
   };
   fishEl._bottomState = st;
 
@@ -709,47 +753,232 @@ function attachBottomBehavior(fishEl, tank) {
     if (!document.body.contains(fishEl)) return;
 
     if (now >= st.nextMoveAt) {
-      st.nextMoveAt = now + (12000 + Math.random() * 20000); // 次は 12〜32秒後
+      st.nextMoveAt = now + (12000 + Math.random() * 20000);
 
-      // “ちょい移動”だけ（大移動しない）
-      const dx = (Math.random() < 0.5 ? -1 : 1) * (6 + Math.random() * 18); // 6〜24px
-      const dy = (Math.random() - 0.5) * 4; // 縦はほぼ動かない
-
-      // 画面に見えてる範囲を基準にクランプ（画面外に行かせない）
       const vp = getViewportBounds(tank);
 
       const fishW = fishEl.offsetWidth || 80;
       const fishH = fishEl.offsetHeight || 80;
 
-      // 底の帯域：画面高さの 72%〜92% あたり
+      // 底の帯域
       const minY = vp.height * 0.85;
       const maxY = vp.height * 0.99 - fishH;
 
-      // 左右は “少し余白” を残して範囲内へ
       const minX = vp.left + 16;
       const maxX = vp.right - fishW - 16;
 
-      st.x = Math.max(minX, Math.min(maxX, st.x + dx));
-      st.y = Math.max(minY, Math.min(maxY, st.y + dy));
+      let nextX = st.x;
+      let nextY = st.y;
+      let found = false;
 
-      // 向きだけ合わせる（生きてる感UP）
-      const body = fishEl.querySelector('.fish-body');
-      if (body) body.style.transform = dx >= 0 ? 'scaleX(-1)' : 'scaleX(1)';
+      // 最大10回まで「重ならない移動先」を探す
+      for (let i = 0; i < 10; i++) {
+        const dx = (Math.random() < 0.5 ? -1 : 1) * (6 + Math.random() * 18);
+        const dy = (Math.random() - 0.5) * 4;
 
-      // ぬるっと移動
-      fishEl.style.transition = 'left 1.4s ease-in-out, top 1.4s ease-in-out';
-      fishEl.style.left = `${st.x}px`;
-      fishEl.style.top  = `${st.y}px`;
+        const candidateX = Math.max(minX, Math.min(maxX, st.x + dx));
+        const candidateY = Math.max(minY, Math.min(maxY, st.y + dy));
 
-      // 移動後はtransitionを切っておく（他処理と干渉しにくい）
-      setTimeout(() => {
-        if (!document.body.contains(fishEl)) return;
-        fishEl.style.transition = 'none';
-      }, 1600);
+        const overlapped = isBottomPositionOverlapping(
+          candidateX,
+          candidateY,
+          fishEl,
+          tank,
+          {
+            minDistanceX: fishW * 0.75,
+            minDistanceY: fishH * 0.55,
+          }
+        );
+
+        if (!overlapped) {
+          nextX = candidateX;
+          nextY = candidateY;
+          found = true;
+          break;
+        }
+      }
+
+      // 見つからなければ今回は移動しない
+      if (found) {
+        const dxMoved = nextX - st.x;
+
+        st.x = nextX;
+        st.y = nextY;
+
+        // 向きだけ合わせる
+        const body = fishEl.querySelector('.fish-body');
+        if (body) body.style.transform = dxMoved >= 0 ? 'scaleX(-1)' : 'scaleX(1)';
+
+        // ぬるっと移動
+        fishEl.style.transition = 'left 1.4s ease-in-out, top 1.4s ease-in-out';
+        fishEl.style.left = `${st.x}px`;
+        fishEl.style.top = `${st.y}px`;
+
+        setTimeout(() => {
+          if (!document.body.contains(fishEl)) return;
+          fishEl.style.transition = 'none';
+        }, 1600);
+      }
     }
 
     requestAnimationFrame(step);
   };
 
   requestAnimationFrame(step);
+}
+
+function getAllBottomFish(tank, excludeEl = null) {
+  return Array.from(tank.querySelectorAll('[data-behavior="bottom"]'))
+    .filter(el => el !== excludeEl);
+}
+
+function isBottomPositionOverlapping(candidateX, candidateY, fishEl, tank, options = {}) {
+  const {
+    minDistanceX = 70,  // px
+    minDistanceY = 45   // px
+  } = options;
+
+  const others = getAllBottomFish(tank, fishEl);
+
+  for (const other of others) {
+    const ox = parseFloat(other.style.left) || 0;
+    const oy = parseFloat(other.style.top) || 0;
+
+    if (
+      Math.abs(candidateX - ox) < minDistanceX &&
+      Math.abs(candidateY - oy) < minDistanceY
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+const FISH_VISIBILITY_KEY = 'aquariumFishVisibility';
+
+function loadFishVisibilitySettings() {
+  try {
+    return JSON.parse(localStorage.getItem(FISH_VISIBILITY_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function saveFishVisibilitySettings(settings) {
+  localStorage.setItem(FISH_VISIBILITY_KEY, JSON.stringify(settings));
+}
+
+function isFishVisible(fishName) {
+  const settings = loadFishVisibilitySettings();
+  // 未設定なら表示
+  return settings[fishName] !== false;
+}
+
+function setFishVisible(fishName, visible) {
+  const settings = loadFishVisibilitySettings();
+  settings[fishName] = visible;
+  saveFishVisibilitySettings(settings);
+}
+
+function applyFishVisibility() {
+  const tank = document.getElementById('fish-tank');
+  if (!tank) return;
+
+  const fishElements = Array.from(tank.children).filter(el => el.dataset && el.dataset.fishName);
+
+  fishElements.forEach((fishEl) => {
+    const fishName = fishEl.dataset.fishName;
+    const visible = isFishVisible(fishName);
+
+    if (visible) {
+      fishEl.style.display = '';
+    } else {
+      fishEl.style.display = 'none';
+    }
+  });
+}
+
+function buildFishVisibilityPanel(fishes) {
+  const list = document.getElementById('fish-visibility-list');
+  if (!list) return;
+
+  list.innerHTML = '';
+
+  // 重複除去
+  const uniqueFishNames = [...new Set(fishes.map(f => f.name))].sort((a, b) => a.localeCompare(b, 'ja'));
+
+  uniqueFishNames.forEach((fishName) => {
+    const id = `fish-visible-${fishName}`;
+
+    const label = document.createElement('label');
+    label.className = 'flex items-center gap-3 px-3 py-2 rounded-xl bg-cyan-50/60 hover:bg-cyan-50 cursor-pointer';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = id;
+    checkbox.checked = isFishVisible(fishName);
+    checkbox.className = 'w-4 h-4 accent-cyan-600';
+
+    checkbox.addEventListener('change', () => {
+      setFishVisible(fishName, checkbox.checked);
+      applyFishVisibility();
+    });
+
+    const text = document.createElement('span');
+    text.className = 'text-sm font-medium text-gray-700';
+    text.textContent = fishName;
+
+    label.appendChild(checkbox);
+    label.appendChild(text);
+    list.appendChild(label);
+  });
+}
+
+function setupVisibilityPanel() {
+  const openBtn = document.getElementById('toggle-visibility-panel');
+  const closeBtn = document.getElementById('close-visibility-panel');
+  const panel = document.getElementById('visibility-panel');
+  const showAllBtn = document.getElementById('show-all-fish');
+  const hideAllBtn = document.getElementById('hide-all-fish');
+
+  if (openBtn && panel) {
+    openBtn.addEventListener('click', () => {
+      panel.classList.toggle('hidden');
+    });
+  }
+
+  if (closeBtn && panel) {
+    closeBtn.addEventListener('click', () => {
+      panel.classList.add('hidden');
+    });
+  }
+
+  if (showAllBtn) {
+    showAllBtn.addEventListener('click', () => {
+      const list = document.getElementById('fish-visibility-list');
+      if (!list) return;
+
+      const checkboxes = list.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach((cb) => {
+        cb.checked = true;
+        setFishVisible(cb.nextSibling.textContent, true);
+      });
+      applyFishVisibility();
+    });
+  }
+
+  if (hideAllBtn) {
+    hideAllBtn.addEventListener('click', () => {
+      const list = document.getElementById('fish-visibility-list');
+      if (!list) return;
+
+      const checkboxes = list.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach((cb) => {
+        cb.checked = false;
+        setFishVisible(cb.nextSibling.textContent, false);
+      });
+      applyFishVisibility();
+    });
+  }
 }

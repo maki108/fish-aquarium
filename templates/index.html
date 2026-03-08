@@ -7,11 +7,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="bg-blue-50 min-h-screen flex flex-col items-center p-4 font-sans text-gray-800">
+{# <body class="bg-blue-50 min-h-screen flex flex-col items-center p-4 font-sans text-gray-800"> #}
+<body class="bg-blue-50 min-h-screen flex flex-col items-center p-4 pb-28 font-sans text-gray-800">
 
     <header class="w-full max-w-md bg-white/80 backdrop-blur rounded-2xl shadow-sm p-4 mb-4 flex justify-between items-center z-50">
         <h1 class="text-lg font-bold text-blue-600 flex items-center">
-            <span class="mr-2">🌊</span>石川さかな巡り
+            <span class="mr-2">🌊</span>石川推し水族館
         </h1>
         <div class="text-right">
             <p id="collection-ratio" class="text-sm font-bold text-gray-700">Loading...</p>
@@ -97,35 +98,56 @@
             <div class="absolute inset-0 flex items-end justify-center animate-[netPull_3s_ease-in-out_infinite]">
                 <span class="text-9xl opacity-80 drop-shadow-lg">🕸️</span>
             </div>
-            <div class="absolute bottom-0 left-1/4 text-4xl animate-[bubble_2s_ease-in_infinite]">.。o○</div>
-            <div class="absolute bottom-0 right-1/4 text-3xl animate-[bubble_2.5s_ease-in_infinite_0.5s]">.。o○</div>
+            <div class="absolute bottom-0 left-1/4 text-4xl animate-[netBubble_2s_ease-in_infinite]">.。o○</div>
+            <div class="absolute bottom-0 right-1/4 text-3xl animate-[netBubble_2.5s_ease-in_infinite_0.5s]">.。o○</div>
         </div>
     </div>
 
     <div id="fishing-overlay" class="fixed inset-0 bg-black/85 backdrop-blur-sm hidden flex-col items-center justify-center z-[110]">
         
-        <div id="fishing-line-container" class="relative w-full h-48 flex flex-col items-center justify-start mt-10">
-            <div id="fishing-line" class="w-0.5 bg-white/70 h-0 origin-top"></div>
-            <div id="fishing-bobber" class="w-3 h-10 rounded-full bg-red-500 border-2 border-white shadow-lg relative opacity-0">
+        <div id="fishing-line-container" class="relative w-full h-64 flex flex-col items-center justify-start mt-10">
+            <div id="fishing-line" class="w-0.5 bg-white/70 h-0 origin-top relative z-10"></div>
+            <div id="fishing-bobber" class="w-3 h-10 rounded-full bg-red-500 border-2 border-white shadow-lg relative opacity-0 z-10">
                 <div class="absolute bottom-0 w-full h-1/2 bg-white rounded-b-full"></div>
+            </div>
+            <div class="fishing-water">
+                <div id="fishing-ripple" class="fishing-ripple"></div>
             </div>
         </div>
         
-        <div id="fishing-result" class="hidden flex-col items-center w-full px-6 z-10">
-            <div class="text-yellow-400 text-5xl font-black mb-8 italic tracking-widest drop-shadow-[0_0_15px_rgba(250,204,21,1)]">GET!!</div>
-            <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-sm text-center shadow-2xl relative">
+        <div id="fishing-result" class="hidden flex-col items-center w-full px-6 z-20 mt-8">
+            <div class="text-yellow-400 text-5xl font-black mb-16 italic tracking-widest drop-shadow-[0_0_15px_rgba(250,204,21,1)]">GET!!</div>
+            
+            <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-sm text-center shadow-2xl relative pt-20">
                 
-                <div class="absolute -top-20 left-1/2 -translate-x-1/2 w-40 h-40 flex items-center justify-center drop-shadow-xl">
-                    <img id="fishing-fish-img" src="" alt="釣れた魚" class="max-w-full max-h-full object-contain">
+                <div class="absolute -top-20 left-1/2 -translate-x-1/2 w-40 h-40 flex items-center justify-center drop-shadow-xl z-30">
+                    <img id="fishing-fish-img" src="" alt="ゲットした魚" class="max-w-full max-h-full object-contain drop-shadow-lg">
                 </div>
                 
-                <h3 id="fishing-fish-name" class="text-3xl font-black text-cyan-700 mt-12 mb-3">魚の名前</h3>
+                <h3 id="fishing-fish-name" class="text-3xl font-black text-cyan-700 mb-3">魚の名前</h3>
                 <p id="fishing-fish-desc" class="text-sm text-gray-600 mb-8 h-16 overflow-y-auto leading-relaxed">説明文</p>
                 
                 <button onclick="nextCatch()" id="fishing-next-btn" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-2xl text-lg transition-all active:scale-95 shadow-lg shadow-orange-200">
                     次へ
                 </button>
             </div>
+        </div>
+    </div>
+    
+    <div id="net-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-6 z-[120]">
+        <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm text-center shadow-2xl">
+            <h3 class="text-2xl font-black text-gray-800 mb-2 text-cyan-600">網を仕掛ける</h3>
+            <p class="text-xs text-gray-500 mb-6">次に来た時に大量に魚が獲れるぞ！</p>
+            
+            <div class="grid grid-cols-2 gap-3 mb-6 text-sm font-bold">
+                <button onclick="placeNet('まき網')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">まき網</button>
+                <button onclick="placeNet('刺し網')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">刺し網</button>
+                <button onclick="placeNet('定置網')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">定置網</button>
+                <button onclick="placeNet('底曳網')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">底曳網</button>
+                <button onclick="placeNet('曳網')" class="col-span-2 bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">曳網</button>
+            </div>
+            
+            <button onclick="closeNetModal()" class="w-full bg-gray-200 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-300 transition-colors">今は仕掛けない</button>
         </div>
     </div>
 
