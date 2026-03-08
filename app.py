@@ -3,6 +3,7 @@ import random
 from datetime import date, datetime
 
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
+from sqlalchemy import text
 
 from models.database import Fish, User, UserCollection, UserNet, db
 
@@ -17,8 +18,21 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + db_path
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 
+
+def ensure_user_is_admin_column():
+    """既存DBに is_admin カラムがない場合は追加する"""
+    columns = db.session.execute(text("PRAGMA table_info(user)")).fetchall()
+    column_names = {col[1] for col in columns}
+    if "is_admin" not in column_names:
+        db.session.execute(
+            text("ALTER TABLE user ADD COLUMN is_admin BOOLEAN NOT NULL DEFAULT 0")
+        )
+        db.session.commit()
+
+
 with app.app_context():
     db.create_all()
+    ensure_user_is_admin_column()
 
 # ---------------------------------------------------------
 # 定数設定 (JS側の game.js と同期させる)
@@ -109,6 +123,9 @@ PORT_FISH_MAP = {
 
 def refresh_dice_if_needed(user):
     """日付が変わっていたらサイコロをリセット"""
+    if user.is_admin:
+        return
+
     today = date.today()
     if user.last_dice_at.date() < today:
         user.dice_count = 2
@@ -254,7 +271,7 @@ def get_user_status():
         {
             "current_pos": user.current_position_id,
             "dist_to_next": dist_to_next,
-            "remaining_dice": user.dice_count,
+            "remaining_dice": "∞" if user.is_admin else user.dice_count,
             "collection_status": f"{UserCollection.query.filter_by(user_id=user.id).count()}/{Fish.query.count()}",
         }
     )
@@ -269,7 +286,7 @@ def roll_dice():
     user = db.session.get(User, session["user_id"])
     refresh_dice_if_needed(user)
 
-    if user.dice_count <= 0:
+    if not user.is_admin and user.dice_count <= 0:
         return jsonify({"error": "本日のサイコロは終了しました"}), 400
 
     dice_val = random.randint(1, 6)
@@ -379,8 +396,9 @@ def roll_dice():
             break
 
     user.current_position_id = old_pos_total + actual_move
-    user.dice_count -= 1
-    user.last_dice_at = datetime.utcnow()
+    if not user.is_admin:
+        user.dice_count -= 1
+        user.last_dice_at = datetime.utcnow()
     db.session.commit()
 
     curr_idx = user.current_position_id % TOTAL_STEPS
@@ -395,7 +413,7 @@ def roll_dice():
             "dist_to_next": dist_to_next,
             "obtained_fishes": obtained_fishes,  # 網 + 通常 の合計リストが送られる
             "collection_status": f"{UserCollection.query.filter_by(user_id=user.id).count()}/{Fish.query.count()}",
-            "remaining_dice": user.dice_count,
+            "remaining_dice": "∞" if user.is_admin else user.dice_count,
             "stopped_at_port": stopped_at_port,
             "recovered_net": recovered_net,
             "net_catch_count": net_catch_count,  # 網だけの獲得数を画面に伝える
@@ -465,6 +483,9 @@ def recover_dice():
         return jsonify({"error": "Unauthorized"}), 401
 
     user = db.session.get(User, session["user_id"])
+    if user.is_admin:
+        return jsonify({"success": True, "new_count": "∞"})
+
     user.dice_count += 1
     db.session.commit()
     return jsonify({"success": True, "new_count": user.dice_count})
@@ -479,6 +500,8 @@ def admin_unlock_all():
     user = db.session.get(User, session["user_id"])
     if not user:
         return jsonify({"error": "User not found"}), 404
+    if not user.is_admin:
+        return jsonify({"error": "Forbidden"}), 403
 
     all_fishes = Fish.query.all()
     owned_ids = {

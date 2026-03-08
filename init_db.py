@@ -4,7 +4,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash
 
 from app import app
-from models.database import Fish, Spot, User, UserNet, db  # Userを追加
+from models.database import Fish, Spot, User, db  # Userを追加
 
 
 def init_database():
@@ -20,6 +20,16 @@ def init_database():
             current_position_id=0,
             dice_count=2,
             last_dice_at=datetime.utcnow(),
+        )
+
+        admin_user = User(
+            id=999,
+            username="admin",
+            password_hash=generate_password_hash("admin123"),
+            current_position_id=0,
+            dice_count=2,
+            last_dice_at=datetime.utcnow(),
+            is_admin=True,
         )
 
         # 2. 初期地点データの投入
@@ -368,6 +378,7 @@ def init_database():
         ]
 
         db.session.add(test_user)  # ユーザーを追加
+        db.session.add(admin_user)
         db.session.add_all(spots)
         db.session.add_all(fishes)
         db.session.commit()

@@ -12,8 +12,8 @@ const MAIN_SPOTS = {
     16: { name: "金沢港",    icon: "🚢", labelClass: "top-8 left-1/2 -translate-x-1/2" },
     24: { name: "羽咋港",    icon: "🛸", labelClass: "-left-10 top-1/2 -translate-y-1/2" },
     32: { name: "七尾港",    icon: "🐟", labelClass: "-right-10 top-1/2 -translate-y-1/2" },
-    40: { name: "輪島港",    icon: "🛍️", labelClass: "-top-6 left-1/2 -translate-x-1/2" },
-    48: { name: "珠洲港",    icon: "💡", labelClass: "-top-6 left-1/2 -translate-x-1/2" },
+    40: { name: "輪島港",    icon: "🛍️", labelClass: "-left-10 top-1/2 -translate-y-1/2" },
+    48: { name: "珠洲港",    icon: "💡", labelClass: "-right-10 top-1/2 -translate-y-1/2" },
     56: { name: "能登島",    icon: "🐬", labelClass: "-right-12 top-1/2 -translate-y-1/2" }
 };
 
@@ -31,6 +31,16 @@ function generateQuizSteps() {
 }
 
 const QUIZ_STEPS = generateQuizSteps();
+
+function getResponsiveLabelClass(labelClass) {
+    if (window.innerWidth >= 768) return labelClass;
+
+    return labelClass
+        .replace('-left-10', '-left-7')
+        .replace('-right-10', '-right-7')
+        .replace('-right-12', '-right-8')
+        .replace('top-8', 'top-6');
+}
 
 const QUIZ_DATA = [
     {
@@ -100,13 +110,14 @@ window.addEventListener('DOMContentLoaded', () => {
 
             if (MAIN_SPOTS[i]) {
                 const spot = MAIN_SPOTS[i];
+                const responsiveLabelClass = getResponsiveLabelClass(spot.labelClass);
                 el.className = "absolute z-20";
                 el.innerHTML = `
                     <div class="relative flex flex-col items-center group">
                         <div class="w-6 h-6 bg-white/95 rounded-full border border-cyan-500 shadow-md flex items-center justify-center text-[10px] z-10">
                             ${spot.icon}
                         </div>
-                        <div class="absolute ${spot.labelClass} bg-white/95 px-1.5 py-0.5 rounded border border-cyan-200 text-[8px] font-bold text-cyan-900 whitespace-nowrap shadow-sm z-20">
+                        <div class="absolute ${responsiveLabelClass} bg-white/95 px-1.5 py-0.5 rounded border border-cyan-200 text-[7px] sm:text-[8px] font-bold text-cyan-900 whitespace-nowrap shadow-sm z-20">
                             ${spot.name}
                         </div>
                     </div>
