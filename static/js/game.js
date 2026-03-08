@@ -185,13 +185,8 @@ function showFishModal(fishes) {
     
     list.innerHTML = fishes.map(f => `
         <div class="flex items-center bg-cyan-50 p-4 rounded-2xl border border-cyan-100 mb-2 shadow-sm">
-<<<<<<< HEAD
             <div class="w-12 h-12 flex items-center justify-center mr-4 shrink-0 bg-white rounded-full">
                  <img src="/static/images/fish/${f.image}" class="w-10 h-10 object-contain">
-=======
-            <div class="w-12 h-12 mr-4 flex-shrink-0">
-                <img src="/static/images/fish/${f.image}" class="w-full h-full object-contain">
->>>>>>> f576b06563532850e1b4c16f720d3f2ec03ab19d
             </div>
             <div>
                 <div class="font-bold text-gray-800 text-lg">${f.name}</div>
