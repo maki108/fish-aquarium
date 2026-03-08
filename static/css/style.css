@@ -90,8 +90,6 @@ body {
     animation: piece-pulse 2s infinite;
 }
 
-<<<<<<< HEAD
-=======
 /* --- 追加ゲットセクション (回復ボタン) --- */
 .grid button {
     transition: all 0.2s ease;
@@ -102,7 +100,6 @@ body {
     filter: brightness(0.95);
 }
 
-/* アイコン背後の白い円の装飾 */
 .grid button div {
     transition: transform 0.2s ease;
 }
@@ -112,20 +109,9 @@ body {
 }
 
 /* --- 水族館画面 (aquarium.html) 用 --- */
+@keyframes swimLeft { from { left: 110%; } to { left: -20%; } }
+@keyframes swimRight { from { left: -20%; } to { left: 110%; } }
 
-/* 右から左へ泳ぐ（今まで通り） */
-@keyframes swimLeft {
-    from { left: 110%; }
-    to { left: -20%; }
-}
-
-/* 左から右へ泳ぐ */
-@keyframes swimRight {
-    from { left: -20%; }
-    to { left: 110%; }
-}
-
-/* 泳ぐ魚の挙動バリエーション */
 @keyframes fish-glide {
     0%, 100% { transform: translateY(0) rotate(0deg); }
     50% { transform: translateY(-6px) rotate(1.2deg); }
@@ -146,18 +132,17 @@ body {
     80% { transform: translateY(-2px) scale(1.01); }
 }
 
-/* その場でゆらゆら揺れる（海藻など） */
 @keyframes sway {
     0% { transform: rotate(-3deg) scale(1); }
     50% { transform: rotate(3deg) scale(1.05); }
     100% { transform: rotate(-3deg) scale(1); }
 }
 
-/* 底でじっとしている（カニ・貝など） */
 @keyframes breathe {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.02); }
 }
+
 .fish-instance {
     position: absolute;
     cursor: pointer;
@@ -166,7 +151,7 @@ body {
     font-size: 2rem;
 }
 
-/* 泡の上昇アニメーション */
+/* 泡の上昇アニメーション (水族館用) */
 @keyframes bubble {
     0% { transform: translateY(0) scale(0.8); opacity: 0; }
     20% { opacity: 0.65; }
@@ -186,14 +171,8 @@ body {
 
 /* タップ・クリック時の水面波紋 */
 @keyframes water-ripple {
-    0% {
-        transform: translate(-50%, -50%) scale(0.2);
-        opacity: 0.7;
-    }
-    100% {
-        transform: translate(-50%, -50%) scale(1.1);
-        opacity: 0;
-    }
+    0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0.7; }
+    100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0; }
 }
 
 .water-ripple {
@@ -228,29 +207,16 @@ body {
 }
 
 @keyframes light-particle-float {
-    0% {
-        transform: translate3d(0, 10px, 0) scale(0.8);
-        opacity: 0;
-    }
-    20% {
-        opacity: 0.32;
-    }
-    100% {
-        transform: translate3d(14px, -90px, 0) scale(1.02);
-        opacity: 0;
-    }
+    0% { transform: translate3d(0, 10px, 0) scale(0.8); opacity: 0; }
+    20% { opacity: 0.32; }
+    100% { transform: translate3d(14px, -90px, 0) scale(1.02); opacity: 0; }
 }
 
-.aquarium-light-layer {
-    overflow: hidden;
-}
+.aquarium-light-layer { overflow: hidden; }
 
 .surface-shimmer {
     position: absolute;
-    top: 0;
-    left: -12%;
-    width: 124%;
-    height: 24%;
+    top: 0; left: -12%; width: 124%; height: 24%;
     background:
         radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 52%),
         radial-gradient(circle at 65% 30%, rgba(186, 230, 253, 0.34), rgba(186, 230, 253, 0) 56%),
@@ -261,10 +227,7 @@ body {
 
 .surface-reflection {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0; width: 100%; height: 100%;
     background-image:
         repeating-linear-gradient(102deg,
             rgba(255, 255, 255, 0.09) 0px,
@@ -275,65 +238,22 @@ body {
     animation: surface-reflection 12s ease-in-out infinite;
 }
 
-.light-rays {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0.35;
-}
+.light-rays { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.35; }
+.light-ray { transform-origin: top center; animation: ray-sway 10.5s ease-in-out infinite; }
+.light-ray.ray-2 { animation-duration: 13s; animation-delay: -2s; }
+.light-ray.ray-3 { animation-duration: 12s; animation-delay: -4s; }
 
-.light-ray {
-    transform-origin: top center;
-    animation: ray-sway 10.5s ease-in-out infinite;
-}
-
-.light-ray.ray-2 {
-    animation-duration: 13s;
-    animation-delay: -2s;
-}
-
-.light-ray.ray-3 {
-    animation-duration: 12s;
-    animation-delay: -4s;
-}
-
-.light-particle-container {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-}
-
+.light-particle-container { position: absolute; inset: 0; overflow: hidden; }
 .light-particle {
-    position: absolute;
-    bottom: -20px;
-    width: 6px;
-    height: 6px;
-    border-radius: 9999px;
+    position: absolute; bottom: -20px; width: 6px; height: 6px; border-radius: 9999px;
     background: radial-gradient(circle, rgba(255, 255, 255, 0.72) 0%, rgba(191, 219, 254, 0.1) 60%, rgba(191, 219, 254, 0) 100%);
     filter: blur(0.2px);
     animation: light-particle-float 14s linear infinite;
 }
 
-/* --- ユーティリティ (図鑑の横スクロール用) --- */
-
-/* スクロールバーを非表示にする（Chrome, Safari, Opera） */
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-
-/* スクロールバーを非表示にする（IE, Edge, Firefox） */
-.no-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-}
-
 /* --- モーダル (共通) --- */
-#fish-modal {
-    backdrop-filter: blur(4px); /* 背景をぼかす演出 */
-}
+#fish-modal { backdrop-filter: blur(4px); }
 
->>>>>>> f576b06563532850e1b4c16f720d3f2ec03ab19d
 /* =========================================
    釣り（GET）演出用アニメーション
    ========================================= */
@@ -350,13 +270,12 @@ body {
 /* 1. 釣り糸がスーッと落ちる */
 @keyframes dropLine {
     0% { height: 0; }
-    100% { height: 120px; }
+    100% { height: 160px; } /* 深めに変更 */
 }
 .animate-drop-line {
     animation: dropLine 0.5s ease-out forwards;
 }
 
-<<<<<<< HEAD
 /* 2. ウキがポチャっと落ちて揺れる */
 @keyframes bobberFloat {
     0% { opacity: 0; transform: translateY(-20px); }
@@ -366,7 +285,7 @@ body {
 }
 .animate-bobber {
     animation: bobberFloat 2s ease-in-out infinite;
-    animation-delay: 0.5s; /* 糸が伸びた後に表示 */
+    animation-delay: 0.5s;
     animation-fill-mode: forwards;
 }
 
@@ -381,23 +300,49 @@ body {
     animation: bobberHit 0.2s infinite !important; 
 }
 
-/* =========================================
-   その他ユーティリティ
-   ========================================= */
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-=======
-/* 網を引き上げるアニメーション */
+/* --- 水面の表現  --- */
+.fishing-water {
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 35%;
+    background: linear-gradient(180deg, rgba(34, 211, 238, 0.3) 0%, rgba(30, 58, 138, 0.8) 100%);
+    border-top: 2px solid rgba(165, 243, 252, 0.5);
+    z-index: 5;
+    overflow: hidden;
+}
+
+.fishing-ripple {
+    position: absolute;
+    top: -10px; left: 50%;
+    transform: translateX(-50%);
+    width: 60px; height: 20px;
+    border: 2px solid rgba(255,255,255,0.8);
+    border-radius: 50%;
+    opacity: 0;
+}
+
+@keyframes rippleEffect {
+    0% { transform: translateX(-50%) scale(0.5); opacity: 1; }
+    100% { transform: translateX(-50%) scale(3); opacity: 0; }
+}
+
+.animate-ripple {
+    animation: rippleEffect 1.5s ease-out infinite;
+}
+
+
 @keyframes netPull {
     0% { transform: translateY(100%); opacity: 0; }
     20% { opacity: 1; }
     80% { opacity: 1; }
     100% { transform: translateY(-20%); opacity: 0; }
 }
-/* 泡のアニメーション */
-@keyframes bubble {
+
+@keyframes netBubble {
     0% { transform: translateY(0) scale(0.5); opacity: 0; }
     20% { opacity: 1; }
     100% { transform: translateY(-100px) scale(1.2); opacity: 0; }
 }
->>>>>>> f576b06563532850e1b4c16f720d3f2ec03ab19d
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
