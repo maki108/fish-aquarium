@@ -5,16 +5,16 @@
 const TOTAL_STEPS = 64;
 let MAP_COORDINATES = [];
 
-// ラベル（文字）が重ならないよう、出す方向を個別に設定
+// ラベル（文字）が重ならないよう、出す方向を少し広めに設定（アイコン大型化に対応）
 const MAIN_SPOTS = {
-    0:  { name: "近江町市場", icon: "🦀", labelClass: "top-8 left-1/2 -translate-x-1/2" },
-    8:  { name: "内灘",      icon: "🏖️", labelClass: "-left-10 top-1/2 -translate-y-1/2" },
-    16: { name: "金沢港",    icon: "🚢", labelClass: "top-8 left-1/2 -translate-x-1/2" },
-    24: { name: "羽咋港",    icon: "🛸", labelClass: "-left-10 top-1/2 -translate-y-1/2" },
-    32: { name: "七尾港",    icon: "🐟", labelClass: "-right-10 top-1/2 -translate-y-1/2" },
-    40: { name: "輪島港",    icon: "🛍️", labelClass: "-top-6 left-1/2 -translate-x-1/2" },
-    48: { name: "珠洲港",    icon: "💡", labelClass: "-top-6 left-1/2 -translate-x-1/2" },
-    56: { name: "能登島",    icon: "🐬", labelClass: "-right-12 top-1/2 -translate-y-1/2" }
+    0:  { name: "近江町市場", icon: "🦀", labelClass: "top-12 left-1/2 -translate-x-1/2" },
+    8:  { name: "内灘",      icon: "🏖️", labelClass: "-left-14 top-1/2 -translate-y-1/2" },
+    16: { name: "金沢港",    icon: "🚢", labelClass: "top-12 left-1/2 -translate-x-1/2" },
+    24: { name: "羽咋港",    icon: "🛸", labelClass: "-left-14 top-1/2 -translate-y-1/2" },
+    32: { name: "七尾港",    icon: "🐟", labelClass: "-right-14 top-1/2 -translate-y-1/2" },
+    40: { name: "輪島港",    icon: "🛍️", labelClass: "-top-8 left-1/2 -translate-x-1/2" },
+    48: { name: "珠洲港",    icon: "💡", labelClass: "-top-8 left-1/2 -translate-x-1/2" },
+    56: { name: "能登島",    icon: "🐬", labelClass: "-right-14 top-1/2 -translate-y-1/2" }
 };
 
 // ------------------------------------------
@@ -103,10 +103,10 @@ window.addEventListener('DOMContentLoaded', () => {
                 el.className = "absolute z-20";
                 el.innerHTML = `
                     <div class="relative flex flex-col items-center group">
-                        <div class="w-6 h-6 bg-white/95 rounded-full border border-cyan-500 shadow-md flex items-center justify-center text-[10px] z-10">
+                        <div class="w-10 h-10 bg-white/95 rounded-full border-2 border-cyan-500 shadow-md flex items-center justify-center text-lg z-10">
                             ${spot.icon}
                         </div>
-                        <div class="absolute ${spot.labelClass} bg-white/95 px-1.5 py-0.5 rounded border border-cyan-200 text-[8px] font-bold text-cyan-900 whitespace-nowrap shadow-sm z-20">
+                        <div class="absolute ${spot.labelClass} bg-white/95 px-2 py-1 rounded border border-cyan-200 text-[10px] font-bold text-cyan-900 whitespace-nowrap shadow-sm z-20">
                             ${spot.name}
                         </div>
                     </div>
@@ -114,12 +114,13 @@ window.addEventListener('DOMContentLoaded', () => {
             } else if (QUIZ_STEPS.has(i)) {
                 el.className = "absolute z-10";
                 el.innerHTML = `
-                    <div class="w-2.5 h-2.5 bg-yellow-400 rounded-full border border-yellow-200 shadow-sm flex items-center justify-center">
-                        <span class="text-[6px] font-black text-yellow-900 leading-none">?</span>
+                    <div class="w-5 h-5 bg-yellow-400 rounded-full border-2 border-yellow-200 shadow-sm flex items-center justify-center">
+                        <span class="text-[10px] font-black text-yellow-900 leading-none">?</span>
                     </div>
                 `;
             } else {
-                el.className = "absolute w-1.5 h-1.5 bg-cyan-500/50 rounded-full z-10 shadow-sm";
+                // ▼ 通常のドットマス：w-3 h-3 に少し大型化
+                el.className = "absolute w-3 h-3 bg-cyan-500/50 rounded-full z-10 shadow-sm";
             }
 
             container.appendChild(el);
@@ -271,6 +272,8 @@ function updateGameScreen(data) {
         player.style.left = `${coord.x}%`;
         player.style.top = `${coord.y}%`;
         player.classList.add('piece-active');
+// ▼ 画面更新時（ロード時など）にカメラを即座に現在地へ合わせる
+        setTimeout(() => focusCameraOnPlayer(true), 50);
     }
 
     // 港にいるなら港IDを保持
@@ -628,12 +631,36 @@ function showBigCatchEffect(fishes, netType, netCatchCount) {
     }, 3000);
 }
 
+
 // ==========================================
-// コマの移動アニメーション
+// コマの移動 ＆ カメラ自動追従アニメーション
 // ==========================================
 
 // 指定したミリ秒だけ待機する関数
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// カメラをプレイヤーの位置に合わせる関数
+function focusCameraOnPlayer(isInstant = false) {
+    const viewport = document.getElementById('map-viewport');
+    const player = document.getElementById('player-piece');
+
+    if (!viewport || !player || player.style.display === 'none') return;
+
+    // プレイヤーの現在の中心座標を取得
+    const playerX = player.offsetLeft + (player.offsetWidth / 2);
+    const playerY = player.offsetTop + (player.offsetHeight / 2);
+
+    // ビューポートの中心に来るようにスクロール位置を計算
+    const targetX = playerX - (viewport.clientWidth / 2);
+    const targetY = playerY - (viewport.clientHeight / 2);
+
+    // スクロール実行
+    viewport.scrollTo({
+        left: targetX,
+        top: targetY,
+        behavior: isInstant ? 'auto' : 'smooth' // trueならパッと移動、falseならヌルッと移動
+    });
+}
 
 // 1マスずつ順番にコマを動かす処理
 async function animatePlayerMovement(startPos, actualMove) {
@@ -641,18 +668,64 @@ async function animatePlayerMovement(startPos, actualMove) {
     player.style.display = 'flex';
 
     for (let i = 1; i <= actualMove; i++) {
-        // 次の移動先のマスの番号を計算
         let step = (startPos + i) % TOTAL_STEPS;
         let coord = MAP_COORDINATES[step];
 
         if (coord) {
-            // コマの位置を更新
             player.style.left = `${coord.x}%`;
             player.style.top = `${coord.y}%`;
+            
+            // ▼ 動いた瞬間にカメラを追従させる！
+            focusCameraOnPlayer(false);
         }
         
-        // 次のマスへ動く前に少し待つ（400ミリ秒）
-        // ※HTML側のコマのCSS「duration-500」と組み合わさって滑らかに動きます
         await sleep(400); 
+    }
+}
+
+// ==========================================
+// マップのズーム（拡大・縮小）機能
+// ==========================================
+
+let currentZoom = 1.0;
+const BASE_MAP_WIDTH = 800;  // style.cssで設定した基本の横幅
+const BASE_MAP_HEIGHT = 600; // style.cssで設定した基本の高さ
+
+function zoomMap(factor) {
+    const container = document.querySelector('.ishikawa-map-container');
+    const viewport = document.getElementById('map-viewport');
+    if (!container || !viewport) return;
+
+    let newZoom = currentZoom * factor;
+    
+    // ズームの限界を設定（0.5倍 〜 2.5倍まで）
+    if (newZoom < 0.5) newZoom = 0.5;
+    if (newZoom > 2.5) newZoom = 2.5;
+    
+    if (newZoom === currentZoom) return; // 限界に達していたら何もしない
+
+    // ズーム前の「今見ている中心座標」を計算
+    const centerX = viewport.scrollLeft + viewport.clientWidth / 2;
+    const centerY = viewport.scrollTop + viewport.clientHeight / 2;
+    
+    // 現在のマップ全体のサイズに対する、中心座標の割合を出す
+    const ratioX = centerX / (BASE_MAP_WIDTH * currentZoom);
+    const ratioY = centerY / (BASE_MAP_HEIGHT * currentZoom);
+
+    // ズーム倍率を更新
+    currentZoom = newZoom;
+
+    // マップのサイズを更新（%配置のコマなども自動で追従します！）
+    container.style.width = `${BASE_MAP_WIDTH * currentZoom}px`;
+    container.style.height = `${BASE_MAP_HEIGHT * currentZoom}px`;
+
+    // サイズ変更後、先ほどの割合に合わせてスクロール位置を調整（ズームした場所を中心にキープ）
+    viewport.scrollLeft = (ratioX * BASE_MAP_WIDTH * currentZoom) - (viewport.clientWidth / 2);
+    viewport.scrollTop = (ratioY * BASE_MAP_HEIGHT * currentZoom) - (viewport.clientHeight / 2);
+    
+    // もしプレイヤーが表示されていれば、念のためプレイヤーにカメラを合わせ直す
+    const player = document.getElementById('player-piece');
+    if (player && player.style.display !== 'none') {
+        focusCameraOnPlayer(true);
     }
 }

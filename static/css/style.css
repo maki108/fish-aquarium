@@ -9,8 +9,9 @@ body {
    ========================================= */
 .ishikawa-map-container {
     position: relative;
-    width: 100%;
-    padding-top: 75%; /* 画像の比率(横4:縦3)に合わせる */
+    /* ▼ 幅と高さを固定して大きくする（スマホ画面よりあえて大きくする） */
+    width: 800px;  
+    height: 600px; /* 横4:縦3の比率 */
     
     background-color: #fff;
     background-image: url('../images/map_ishikawa.png');
@@ -18,9 +19,8 @@ body {
     background-position: top center;
     background-repeat: no-repeat;
     
-    border: 2px solid #e2e8f0;
+    /* 外枠の装飾は viewport 側に移したので削除・調整 */
     border-radius: 1.5rem;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
 }
 
 #map-nodes {
