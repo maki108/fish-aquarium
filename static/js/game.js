@@ -131,13 +131,19 @@ window.addEventListener('DOMContentLoaded', () => {
                 `;
             } else {
                 // ▼ 通常のドットマス：w-3 h-3 に少し大型化
-                el.className = "absolute w-3 h-3 bg-cyan-500/50 rounded-full z-10 shadow-sm";
+                el.className = "absolute w-3.5 h-3.5 bg-cyan-400 rounded-full border-[1.5px] border-white z-10 shadow";
             }
 
             container.appendChild(el);
         }
     }
 
+    const routeLine = document.getElementById('route-line');
+    if (routeLine && MAP_COORDINATES.length > 0) {
+        // 座標データを "x,y x,y x,y..." という文字列に変換して適用
+        const pointsStr = MAP_COORDINATES.map(c => `${c.x},${c.y}`).join(' ');
+        routeLine.setAttribute('points', pointsStr);
+    }
     initPlayerPosition();
 });
 

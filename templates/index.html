@@ -25,6 +25,9 @@
             
             <div id="map-viewport" class="w-full h-[50vh] max-h-[450px] overflow-auto rounded-3xl shadow-inner border-2 border-gray-100 no-scrollbar bg-blue-50/30">
                 <div class="ishikawa-map-container relative mx-auto overflow-hidden">
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="absolute inset-0 w-full h-full z-0 pointer-events-none">
+                        <polygon id="route-line" fill="none" stroke="#7dd3fc" stroke-width="0.5" stroke-dasharray="1,1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
                     <div id="map-nodes" class="absolute inset-0"></div>
                     <div id="player-piece" class="absolute w-10 h-10 bg-orange-500 rounded-full border-[3px] border-white shadow-xl transition-all duration-500 z-30 flex items-center justify-center" style="display: none;">
                         <div class="w-3 h-3 bg-black rounded-full"></div>
