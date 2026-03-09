@@ -117,7 +117,7 @@ window.addEventListener('DOMContentLoaded', () => {
                         <div class="w-10 h-10 bg-white/95 rounded-full border-2 border-cyan-500 shadow-md flex items-center justify-center text-lg z-10">
                             ${spot.icon}
                         </div>
-                        <div class="absolute ${spot.labelClass} bg-white/95 px-2 py-1 rounded border border-cyan-200 text-[10px] font-bold text-cyan-900 whitespace-nowrap shadow-sm z-20">
+                        <div class="absolute ${responsiveLabelClass} bg-white/95 px-2 py-1 rounded border border-cyan-200 text-[10px] font-bold text-cyan-900 whitespace-nowrap shadow-sm z-20">
                             ${spot.name}
                         </div>
                     </div>
