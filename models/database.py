@@ -20,6 +20,7 @@ class User(db.Model):
 
     # 歩数カード管理用フラグ
     has_double_dice_card = db.Column(db.Boolean, default=False)
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
 
     # パスワードを暗号化してセットする機能
     def set_password(self, password):

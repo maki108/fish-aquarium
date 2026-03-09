@@ -32,6 +32,16 @@ function generateQuizSteps() {
 
 const QUIZ_STEPS = generateQuizSteps();
 
+function getResponsiveLabelClass(labelClass) {
+    if (window.innerWidth >= 768) return labelClass;
+
+    return labelClass
+        .replace('-left-10', '-left-7')
+        .replace('-right-10', '-right-7')
+        .replace('-right-12', '-right-8')
+        .replace('top-8', 'top-6');
+}
+
 const QUIZ_DATA = [
     {
         question: "一般的に「本ズワイガニ」の漁が解禁され、最も旬とされる時期はいつからいつまででしょうか？",
@@ -100,6 +110,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
             if (MAIN_SPOTS[i]) {
                 const spot = MAIN_SPOTS[i];
+                const responsiveLabelClass = getResponsiveLabelClass(spot.labelClass);
                 el.className = "absolute z-20";
                 el.innerHTML = `
                     <div class="relative flex flex-col items-center group">
