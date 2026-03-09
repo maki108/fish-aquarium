@@ -122,16 +122,24 @@ PORT_FISH_MAP = {
 
 
 def refresh_dice_if_needed(user):
-    """日付が変わっていたらサイコロをリセット"""
+    if user is None:
+        return
+
     if user.is_admin:
         return
 
-    today = date.today()
-    if user.last_dice_at.date() < today:
+    today_utc = datetime.utcnow().date()
+
+    if user.last_dice_at is None:
         user.dice_count = 2
         user.last_dice_at = datetime.utcnow()
         db.session.commit()
+        return
 
+    if user.last_dice_at.date() < today_utc:
+        user.dice_count = 2
+        user.last_dice_at = datetime.utcnow()
+        db.session.commit()
 
 # ---------------------------------------------------------
 # ページルート
@@ -490,6 +498,34 @@ def recover_dice():
     db.session.commit()
     return jsonify({"success": True, "new_count": user.dice_count})
 
+@app.route("/api/quiz-reward", methods=["POST"])
+def quiz_reward():
+    """クイズ正解時にサイコロを1回分付与"""
+    if "user_id" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    user = db.session.get(User, session["user_id"])
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    refresh_dice_if_needed(user)
+
+    if user.is_admin:
+        return jsonify({
+            "success": True,
+            "new_count": "∞",
+            "message": "管理者ユーザーのためサイコロは無制限です"
+        })
+
+    user.dice_count += 1
+    db.session.commit()
+
+    return jsonify({
+        "success": True,
+        "new_count": user.dice_count,
+        "message": "クイズ正解！サイコロを1回分追加しました"
+    })
+    
 
 @app.route("/admin/unlock-all", methods=["POST", "GET"])
 def admin_unlock_all():

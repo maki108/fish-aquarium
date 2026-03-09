@@ -129,42 +129,126 @@
             </div>
         </div>
         
-        <div id="fishing-result" class="hidden flex-col items-center w-full px-6 z-20 mt-8">
-            <div class="text-yellow-400 text-5xl font-black mb-16 italic tracking-widest drop-shadow-[0_0_15px_rgba(250,204,21,1)]">GET!!</div>
-            
-            <div class="bg-white rounded-[2.5rem] p-8 w-full max-w-sm text-center shadow-2xl relative pt-20">
-                
-                <div class="absolute -top-20 left-1/2 -translate-x-1/2 w-40 h-40 flex items-center justify-center drop-shadow-xl z-30">
-                    <img id="fishing-fish-img" src="" alt="ゲットした魚" class="max-w-full max-h-full object-contain drop-shadow-lg">
-                </div>
-                
-                <h3 id="fishing-fish-name" class="text-3xl font-black text-cyan-700 mb-3">魚の名前</h3>
-                <p id="fishing-fish-desc" class="text-sm text-gray-600 mb-8 h-16 overflow-y-auto leading-relaxed">説明文</p>
-                
-                <button onclick="nextCatch()" id="fishing-next-btn" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-2xl text-lg transition-all active:scale-95 shadow-lg shadow-orange-200">
-                    次へ
+        <div id="fishing-result" class="hidden fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm flex-col items-center justify-center">
+        <div class="w-full h-full flex flex-col items-center justify-center px-5 py-6">
+
+            <!-- カード -->
+            <div class="w-full max-w-md rounded-[2.8rem] bg-[#fdfdfd] shadow-[0_20px_60px_rgba(0,0,0,0.28)] px-8 pt-10 pb-8 min-h-[560px] flex flex-col items-center border border-white/60">
+
+            <!-- GET -->
+            <div class="mb-8">
+                <h2 class="text-[2.6rem] leading-none font-black italic tracking-wide text-yellow-400 drop-shadow-[0_0_14px_rgba(250,204,21,0.45)]">
+                GET!!
+                </h2>
+            </div>
+
+            <!-- 魚画像 -->
+            <div class="w-full flex justify-center mb-8">
+                <img
+                id="fishing-fish-img"
+                src=""
+                alt="ゲットした魚"
+                class="max-w-[220px] max-h-[150px] w-auto h-auto object-contain drop-shadow-[0_10px_16px_rgba(0,0,0,0.18)]"
+                >
+            </div>
+
+            <!-- 魚名 -->
+            <h3
+                id="fishing-fish-name"
+                class="text-[2.2rem] leading-tight font-black text-cyan-700 text-center tracking-tight"
+            >
+                魚の名前
+            </h3>
+
+            <!-- 説明 -->
+            <p
+                id="fishing-fish-desc"
+                class="mt-5 text-[1rem] text-gray-500 leading-8 text-center max-w-[260px]"
+            >
+                説明文
+            </p>
+
+            <!-- 下ボタン -->
+            <div class="mt-auto w-full pt-10">
+                <button
+                onclick="nextCatch()"
+                id="fishing-next-btn"
+                class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-5 rounded-[1.4rem] text-[1.15rem] transition-all active:scale-[0.98] shadow-[0_10px_24px_rgba(249,115,22,0.32)]"
+                >
+                次の魚を釣る 🎣
                 </button>
             </div>
+
+            </div>
+        </div>
         </div>
     </div>
-    
+
     <div id="net-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-6 z-[120]">
         <div class="bg-white rounded-[2rem] p-8 w-full max-w-sm text-center shadow-2xl">
             <h3 class="text-2xl font-black text-gray-800 mb-2 text-cyan-600">網を仕掛ける</h3>
             <p class="text-xs text-gray-500 mb-6">次に来た時に大量に魚が獲れるぞ！</p>
             
             <div class="grid grid-cols-2 gap-3 mb-6 text-sm font-bold">
-                <button onclick="placeNet('まき網')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">まき網</button>
-                <button onclick="placeNet('刺し網')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">刺し網</button>
-                <button onclick="placeNet('定置網')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">定置網</button>
-                <button onclick="placeNet('底曳網')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">底曳網</button>
-                <button onclick="placeNet('曳網')" class="col-span-2 bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-xl border border-blue-200 active:scale-95 transition-all">曳網</button>
+                <button onclick="placeNet('まき網')" 
+                    class="net-btn bg-blue-50 hover:bg-blue-100 text-blue-700 py-4 rounded-xl border border-blue-200 active:scale-95 transition-all flex flex-col items-center justify-center">
+                    まき網
+                </button>
+
+                <button onclick="placeNet('刺し網')" 
+                    class="net-btn bg-blue-50 hover:bg-blue-100 text-blue-700 py-4 rounded-xl border border-blue-200 active:scale-95 transition-all flex flex-col items-center justify-center">
+                    刺し網
+                </button>
+
+                <button onclick="placeNet('定置網')" 
+                    class="net-btn bg-blue-50 hover:bg-blue-100 text-blue-700 py-4 rounded-xl border border-blue-200 active:scale-95 transition-all flex flex-col items-center justify-center">
+                    定置網
+                </button>
+
+                <button onclick="placeNet('底曳網')" 
+                    class="net-btn bg-blue-50 hover:bg-blue-100 text-blue-700 py-4 rounded-xl border border-blue-200 active:scale-95 transition-all flex flex-col items-center justify-center">
+                    底曳網
+                </button>
+
+                <button onclick="placeNet('曳網')" 
+                    class="net-btn bg-blue-50 hover:bg-blue-100 text-blue-700 py-4 rounded-xl border border-blue-200 active:scale-95 transition-all flex flex-col items-center justify-center">
+                    曳網
+                </button>
             </div>
-            
-            <button onclick="closeNetModal()" class="w-full bg-gray-200 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-300 transition-colors">今は仕掛けない</button>
+
+            <div id="net-loading" class="hidden text-cyan-600 font-bold mt-4 animate-pulse">
+                ⚓ 網を仕掛けています...
+            </div>
+
+            <button onclick="closeNetModal()" class="w-full mt-6 bg-gray-200 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-300 transition-colors">
+                今は仕掛けない
+            </button>
         </div>
+    
     </div>
 
+    <div id="quiz-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-6 z-[130]">
+        <div class="bg-white rounded-[2rem] p-6 w-full max-w-sm text-center shadow-2xl">
+            <h3 class="text-2xl font-black text-yellow-500 mb-4">クイズマス！</h3>
+            <p id="quiz-question" class="text-left text-sm font-bold text-gray-800 leading-relaxed mb-4"></p>
+
+            <div id="quiz-choices" class="space-y-3"></div>
+
+            <div id="quiz-result" class="mt-4"></div>
+
+            <button
+                onclick="document.getElementById('quiz-modal').classList.add('hidden'); document.getElementById('quiz-modal').classList.remove('flex');"
+                class="mt-5 w-full bg-gray-200 text-gray-700 py-3 rounded-2xl font-bold hover:bg-gray-300 transition-colors"
+            >
+                とじる
+            </button>
+        </div>
+    </div>    
+    <div id="toast-message"
+        class="fixed left-1/2 -translate-x-1/2 bottom-24 hidden z-[200] px-6 py-3 rounded-full text-white font-bold text-sm shadow-[0_10px_30px_rgba(0,0,0,0.25)] bg-cyan-600">
+    メッセージ
+    </div>
+    <div id="port-toast-layer" class="fixed inset-0 pointer-events-none z-[210]"></div>
     <script src="{{ url_for('static', filename='js/game.js') }}"></script>
 </body>
 </html>

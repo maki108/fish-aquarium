@@ -346,3 +346,62 @@ body {
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.port-toast {
+    position: fixed;
+    transform: translate(-50%, -50%);
+    background: rgba(8, 145, 178, 0.96);
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 10px 24px rgba(8, 145, 178, 0.28);
+    border: 2px solid rgba(255,255,255,0.9);
+    white-space: nowrap;
+    animation: portToastPop 0.45s ease-out forwards;
+}
+
+.port-toast::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -8px;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    background: rgba(8, 145, 178, 0.96);
+    border-right: 2px solid rgba(255,255,255,0.9);
+    border-bottom: 2px solid rgba(255,255,255,0.9);
+    rotate: 45deg;
+}
+
+.port-toast.is-out {
+    animation: portToastOut 0.45s ease-in forwards;
+}
+
+@keyframes portToastPop {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -35%) scale(0.85);
+    }
+    60% {
+        opacity: 1;
+        transform: translate(-50%, -58%) scale(1.06);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@keyframes portToastOut {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -90%) scale(0.96);
+    }
+}

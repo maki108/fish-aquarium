@@ -111,7 +111,8 @@ window.addEventListener('DOMContentLoaded', () => {
             if (MAIN_SPOTS[i]) {
                 const spot = MAIN_SPOTS[i];
                 const responsiveLabelClass = getResponsiveLabelClass(spot.labelClass);
-                el.className = "absolute z-20";
+                el.className = "absolute z-20 port-node";
+                el.dataset.step = i;
                 el.innerHTML = `
                     <div class="relative flex flex-col items-center group">
                         <div class="w-10 h-10 bg-white/95 rounded-full border-2 border-cyan-500 shadow-md flex items-center justify-center text-lg z-10">
@@ -122,6 +123,7 @@ window.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                 `;
+
             } else if (QUIZ_STEPS.has(i)) {
                 el.className = "absolute z-10";
                 el.innerHTML = `
@@ -404,10 +406,11 @@ function showQuizModal() {
     modal.classList.add('flex');
 }
 
-function answerQuiz(selectedIndex) {
+async function answerQuiz(selectedIndex) {
     const resultEl = document.getElementById('quiz-result');
     const choicesEl = document.getElementById('quiz-choices');
     const modal = document.getElementById('quiz-modal');
+    const closeBtn = modal ? modal.querySelector('button') : null;
 
     if (!currentQuiz) return;
 
@@ -419,43 +422,98 @@ function answerQuiz(selectedIndex) {
         btn.classList.add('opacity-80');
     });
 
+    if (closeBtn) closeBtn.disabled = true;
+
     if (isCorrect) {
-        quizRetryEnabled = true;
+        try {
+            const response = await fetch('/api/quiz-reward', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
 
-        resultEl.innerHTML = `
-            <div class="bg-green-50 border border-green-200 text-green-700 rounded-2xl px-4 py-3">
-                <div class="font-black text-lg mb-1">正解！</div>
-                <div class="text-sm">${currentQuiz.explanation}</div>
-                <div class="text-sm font-bold mt-2">もう一度サイコロを振れます。</div>
-            </div>
-        `;
+            const data = await response.json();
 
-        setTimeout(() => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+            if (!response.ok || data.error) {
+                resultEl.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 text-red-700 rounded-2xl px-4 py-3">
+                        <div class="font-black text-lg mb-1">正解！</div>
+                        <div class="text-sm mb-2">${currentQuiz.explanation}</div>
+                        <div class="text-sm">ただし報酬付与に失敗しました：${data.error || '不明なエラー'}</div>
+                    </div>
+                `;
+
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                    if (closeBtn) closeBtn.disabled = false;
+                }, 2500);
+                return;
+            }
+
+            // 残りサイコロ表示を更新
+            const diceCountEl = document.getElementById('dice-count');
+            if (diceCountEl) {
+                diceCountEl.innerText = data.new_count;
+            }
+
+            // ボタン見た目をボーナス状態に
             enableExtraRoll();
-        }, 4000);
+
+            resultEl.innerHTML = `
+                <div class="bg-green-50 border border-green-200 text-green-700 rounded-2xl px-4 py-3">
+                    <div class="font-black text-lg mb-1">正解！</div>
+                    <div class="text-sm">${currentQuiz.explanation}</div>
+                    <div class="text-sm font-bold mt-2">サイコロを1回分ゲット！</div>
+                </div>
+            `;
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                if (closeBtn) closeBtn.disabled = false;
+            }, 2500);
+
+        } catch (e) {
+            console.error("クイズ報酬付与エラー:", e);
+            resultEl.innerHTML = `
+                <div class="bg-red-50 border border-red-200 text-red-700 rounded-2xl px-4 py-3">
+                    <div class="font-black text-lg mb-1">正解！</div>
+                    <div class="text-sm mb-2">${currentQuiz.explanation}</div>
+                    <div class="text-sm">通信エラーのため報酬付与に失敗しました。</div>
+                </div>
+            `;
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                if (closeBtn) closeBtn.disabled = false;
+            }, 2500);
+        }
 
     } else {
         resultEl.innerHTML = `
             <div class="bg-red-50 border border-red-200 text-red-700 rounded-2xl px-4 py-3">
                 <div class="font-black text-lg mb-1">不正解…</div>
                 <div class="text-sm">${currentQuiz.explanation}</div>
-                <div class="text-xs text-gray-600 mt-2">今回は追加ロールなしです。</div>
+                <div class="text-xs text-gray-600 mt-2">今回は追加サイコロなしです。</div>
             </div>
         `;
 
         setTimeout(() => {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+            if (closeBtn) closeBtn.disabled = false;
         }, 1800);
     }
 }
+
+
 
 function enableExtraRoll() {
     const button = document.getElementById('roll-button');
     if (!button) return;
 
+    quizRetryEnabled = true;
     button.disabled = false;
     button.classList.add('ring-4', 'ring-yellow-300');
     button.innerText = 'もう一度サイコロを振る！';
@@ -569,12 +627,24 @@ function closeNetModal() {
 async function placeNet(netType) {
     if (window.currentPortId === null || window.currentPortId === undefined) return;
 
+    const portId = window.currentPortId;
+
+    const buttons = document.querySelectorAll('.net-btn');
+    const loading = document.getElementById('net-loading');
+
+    // ボタン無効化
+    buttons.forEach(btn => btn.disabled = true);
+
+    if (loading) {
+        loading.classList.remove('hidden');
+    }
+
     try {
         const response = await fetch('/api/place-net', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                port_id: window.currentPortId,
+                port_id: portId,
                 net_type: netType
             })
         });
@@ -582,16 +652,17 @@ async function placeNet(netType) {
         const data = await response.json();
 
         if (data.success) {
-            alert(`⚓ ${data.message}`);
             closeNetModal();
+            showPortToast(`⚓ ${netType}を仕掛けました！`, portId);
         } else {
-            alert(`⚠️ ${data.error}`);
             closeNetModal();
+            showToast(data.error, "error");
         }
+
     } catch (e) {
         console.error("網の設置エラー:", e);
-        alert("通信エラーが発生しました。");
         closeNetModal();
+        showToast("通信エラー", "error");
     }
 }
 
@@ -745,4 +816,63 @@ function zoomMap(factor) {
     if (player && player.style.display !== 'none') {
         focusCameraOnPlayer(true);
     }
+}
+
+function showToast(message, type = "info") {
+    const toast = document.getElementById("toast-message");
+    if (!toast) return;
+
+    toast.textContent = message;
+
+    // 色を切り替え
+    toast.classList.remove("bg-cyan-600", "bg-red-500", "bg-gray-800");
+
+    if (type === "error") {
+        toast.classList.add("bg-red-500");
+    } else if (type === "dark") {
+        toast.classList.add("bg-gray-800");
+    } else {
+        toast.classList.add("bg-cyan-600");
+    }
+
+    toast.classList.remove("hidden", "opacity-0", "translate-y-2");
+    toast.classList.add("opacity-100");
+
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => {
+        toast.classList.add("hidden");
+    }, 1800);
+}
+
+function showPortToast(message, step = null) {
+    const layer = document.getElementById('port-toast-layer');
+    if (!layer) return;
+
+    const targetStep = (step !== null && step !== undefined) ? step : window.currentPortId;
+    if (targetStep === null || targetStep === undefined) return;
+
+    const portEl = document.querySelector(`.port-node[data-step="${targetStep}"]`);
+    if (!portEl) {
+        showToast(message, "info");
+        return;
+    }
+
+    const rect = portEl.getBoundingClientRect();
+
+    const toast = document.createElement('div');
+    toast.className = 'port-toast';
+    toast.textContent = message;
+
+    // 実際に見えている港アイコンの真上に出す
+    toast.style.left = `${rect.left + rect.width / 2}px`;
+    toast.style.top = `${rect.top - 12}px`;
+
+    layer.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add('is-out');
+        setTimeout(() => {
+            toast.remove();
+        }, 450);
+    }, 1400);
 }
