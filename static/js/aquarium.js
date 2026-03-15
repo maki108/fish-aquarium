@@ -7,175 +7,163 @@
 let activeFollowerFish = null;
 
 
+const imagePreloadCache = new Map();
 
+function preloadImage(src) {
+  return new Promise((resolve) => {
+    if (!src) {
+      resolve(null);
+      return;
+    }
+
+    if (imagePreloadCache.has(src)) {
+      resolve(imagePreloadCache.get(src));
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => {
+      imagePreloadCache.set(src, img);
+      resolve(img);
+    };
+    img.onerror = () => {
+      console.warn('画像の先読み失敗:', src);
+      resolve(null);
+    };
+    img.src = src;
+  });
+}
+
+async function preloadImages(srcList = []) {
+  const uniqueList = [...new Set(srcList.filter(Boolean))];
+  await Promise.all(uniqueList.map(src => preloadImage(src)));
+}
 // 1. サーバーから所持している魚のリストを取得して表示
 
 async function loadAquarium() {
+  try {
+    showAquariumLoading();
+    const response = await fetch('/api/collection');
+    const data = await response.json();
+    const tank = document.getElementById('fish-tank');
+    if (!tank) return;
 
-try {
+    const myFishes = data.filter(f => f.is_owned);
 
-const response = await fetch('/api/collection');
+    // 背景画像 + 所持魚画像を先読み
+    const fishImageUrls = myFishes.map(f => `/static/images/fish/${f.image}`);
+    const backgroundUrls = [
+      '/static/images/aquarium/bg.png' // 実際の背景画像パスに合わせて変更
+    ];
 
-const data = await response.json();
+    await preloadImages([...backgroundUrls, ...fishImageUrls]);
 
-const tank = document.getElementById('fish-tank');
+    tank.innerHTML = '';
 
+    const placedBottomSlots = [];
+    const placedSeaweedSlots = [];
 
-// 所持している(is_owned: true)の魚だけを表示
+    const bottomCreatures = ['ズワイガニ', '毛ガニ', 'サザエ', 'イワガキ', 'シャコ', 'アカカレイ', 'アンコウ', 'ハタハタ', 'トゲザコエビ'];
+    const seaweeds = ['アカモク'];
 
-const myFishes = data.filter(f => f.is_owned);
+    myFishes.forEach((fish) => {
+      const fishEl = document.createElement('div');
 
+      fishEl.className = 'absolute z-10 flex flex-col items-center justify-center transition-all duration-300 cursor-pointer';
+      fishEl.dataset.fishName = fish.name;
 
-const placedBottomSlots = [];
-const placedSeaweedSlots = [];
+      if (seaweeds.some(name => fish.name.includes(name))) {
+        fishEl.dataset.behavior = 'seaweed';
+        fishEl.style.bottom = '0%';
+        fishEl.style.left = `${5 + Math.random() * 90}%`;
+        fishEl.style.animation = `sway ${3 + Math.random() * 2}s ease-in-out infinite`;
+        fishEl.style.transformOrigin = 'bottom center';
 
-// ★ 生き物の分類リスト
+      } else if (bottomCreatures.some(name => fish.name.includes(name))) {
+        fishEl.dataset.behavior = 'bottom';
 
-const bottomCreatures = ['ズワイガニ', '毛ガニ', 'サザエ', 'イワガキ', 'シャコ', 'アカカレイ', 'アンコウ', 'ハタハタ', 'トゲザコエビ']; // 底にいる
+        const pos = findNonOverlappingBottomPosition(placedBottomSlots, {
+          minLeft: 5,
+          maxLeft: 95,
+          minBottom: 2,
+          maxBottom: 12,
+          minDistanceX: 12,
+          minDistanceY: 7,
+          maxTries: 80
+        });
 
-const seaweeds = ['アカモク']; // 海藻
+        fishEl.style.bottom = `${pos.bottom}%`;
+        fishEl.style.left = `${pos.left}%`;
+        fishEl.style.animation = `breathe ${4 + Math.random() * 2}s ease-in-out infinite`;
 
+      } else {
+        fishEl.dataset.behavior = 'swim';
 
+        const isSwimRight = Math.random() > 0.5;
+        const movementPattern = ['glide', 'wave', 'dart'][Math.floor(Math.random() * 3)];
 
-myFishes.forEach((fish) => {
+        let duration = 18 + Math.random() * 18;
+        let motionName = 'fish-glide';
+        let motionDuration = 4.5 + Math.random() * 2.5;
+        let motionTiming = 'ease-in-out';
 
-const fishEl = document.createElement('div');
+        if (movementPattern === 'wave') {
+          duration = 16 + Math.random() * 14;
+          motionName = 'fish-wave';
+          motionDuration = 3.5 + Math.random() * 2;
+          motionTiming = 'ease-in-out';
+        } else if (movementPattern === 'dart') {
+          duration = 11 + Math.random() * 10;
+          motionName = 'fish-dart';
+          motionDuration = 2.2 + Math.random() * 1.4;
+          motionTiming = 'cubic-bezier(0.4, 0, 0.2, 1)';
+        }
 
-// 基本クラス設定（位置調整用）
+        fishEl.dataset.motionName = motionName;
+        fishEl.dataset.motionDuration = `${motionDuration}`;
+        fishEl.dataset.motionTiming = motionTiming;
+        fishEl.dataset.swimDirection = isSwimRight ? 'right' : 'left';
+        fishEl.dataset.direction = isSwimRight ? 'right' : 'left';
 
-fishEl.className = 'absolute z-10 flex flex-col items-center justify-center transition-all duration-300 cursor-pointer';
+        fishEl.style.top = `${5 + Math.random() * 60}%`;
+        fishEl.style.left = `${Math.random() * 80}%`;
+      }
 
-fishEl.dataset.fishName = fish.name;
+      const facingScale = fishEl.dataset.direction === 'right' ? -1 : 1;
 
-// --- 動きと位置の決定 ---
+      fishEl.innerHTML = `
+        <div class="fish-body" style="transform: scaleX(${facingScale}); width: 80px; height: 80px;">
+          <img
+            src="/static/images/fish/${fish.image}"
+            loading="eager"
+            decoding="async"
+            class="w-full h-full object-contain drop-shadow-lg transition-transform hover:scale-110"
+          >
+        </div>
+      `;
 
+      fishEl.onclick = () => showTalkBubble(fish.name);
 
-// 1. 海藻の場合（底でゆらゆら）
+      tank.appendChild(fishEl);
 
-if (seaweeds.some(name => fish.name.includes(name))) {
+      if (fishEl.dataset.behavior === 'swim') {
+        pinFishAtCurrentPosition(fishEl, tank.parentElement);
+        attachAutonomousSwim(fishEl, tank);
+      }
 
-fishEl.dataset.behavior = 'seaweed';
+      if (fishEl.dataset.behavior === 'bottom') {
+        attachBottomBehavior(fishEl, tank);
+      }
+    });
 
-fishEl.style.bottom = '0%'; // 底に固定
+    buildFishVisibilityPanel(myFishes);
+    applyFishVisibility();
 
-fishEl.style.left = `${5 + Math.random() * 90}%`; // 横位置はランダム
-
-fishEl.style.animation = `sway ${3 + Math.random() * 2}s ease-in-out infinite`; // ゆらゆら
-
-fishEl.style.transformOrigin = 'bottom center'; // 下を軸に揺れる
-
-
-
-// 2. 底の生き物の場合（底でじっとする）
-
-} else if (bottomCreatures.some(name => fish.name.includes(name))) {
-  fishEl.dataset.behavior = 'bottom';
-
-  const pos = findNonOverlappingBottomPosition(placedBottomSlots, {
-    minLeft: 5,
-    maxLeft: 95,
-    minBottom: 2,
-    maxBottom: 12,
-    minDistanceX: 12,
-    minDistanceY: 7,
-    maxTries: 80
-  });
-
-  fishEl.style.bottom = `${pos.bottom}%`;
-  fishEl.style.left = `${pos.left}%`;
-  fishEl.style.animation = `breathe ${4 + Math.random() * 2}s ease-in-out infinite`;
-
-
-
-// 3. 泳ぐ魚の場合（これまで通り）
-
-// 3. 泳ぐ魚の場合（これまで通り）
-} else {
-  fishEl.dataset.behavior = 'swim';
-
-  const isSwimRight = Math.random() > 0.5;
-  const movementPattern = ['glide', 'wave', 'dart'][Math.floor(Math.random() * 3)];
-
-  let duration = 18 + Math.random() * 18;
-  let motionName = 'fish-glide';
-  let motionDuration = 4.5 + Math.random() * 2.5;
-  let motionTiming = 'ease-in-out';
-
-  if (movementPattern === 'wave') {
-    duration = 16 + Math.random() * 14;
-    motionName = 'fish-wave';
-    motionDuration = 3.5 + Math.random() * 2;
-    motionTiming = 'ease-in-out';
-  } else if (movementPattern === 'dart') {
-    duration = 11 + Math.random() * 10;
-    motionName = 'fish-dart';
-    motionDuration = 2.2 + Math.random() * 1.4;
-    motionTiming = 'cubic-bezier(0.4, 0, 0.2, 1)';
+  } catch (e) {
+    console.error("水族館の読み込みに失敗しました", e);
+  }finally {
+    hideAquariumLoading();
   }
-
-  // ★ここではまだ animation を入れない（後で入れる）
-  fishEl.dataset.motionName = motionName;
-  fishEl.dataset.motionDuration = `${motionDuration}`;
-  fishEl.dataset.motionTiming = motionTiming;
-  fishEl.dataset.swimDirection = isSwimRight ? 'right' : 'left';
-  fishEl.dataset.direction = isSwimRight ? 'right' : 'left';
-
-  fishEl.style.top = `${5 + Math.random() * 60}%`;
-  fishEl.style.left = `${Math.random() * 80}%`; // 初期位置も置いておく
-}
-
-
-
-// --- 画像の表示設定 ---
-
-// 泳ぐ方向に応じた反転スタイル（datasetを使用していない海藻などは影響なし）
-
-const facingScale = fishEl.dataset.direction === 'right' ? -1 : 1;
-
-
-
-fishEl.innerHTML = `
-
-<div class="fish-body" style="transform: scaleX(${facingScale}); width: 80px; height: 80px;">
-
-<img src="/static/images/fish/${fish.image}"
-
-class="w-full h-full object-contain drop-shadow-lg transition-transform hover:scale-110">
-
-</div>
-
-`;
-
-
-
-// クリック時のイベント
-
-fishEl.onclick = () => showTalkBubble(fish.name);
-
-
-
-tank.appendChild(fishEl);
-if (fishEl.dataset.behavior === 'swim') {
-  // 現在位置をpxに固定してから
-  pinFishAtCurrentPosition(fishEl, tank.parentElement);
-  attachAutonomousSwim(fishEl, tank);
-}
-
-if (fishEl.dataset.behavior === 'bottom') {
-  attachBottomBehavior(fishEl, tank);
-}
-
-});
-
-buildFishVisibilityPanel(myFishes);
-applyFishVisibility();
-
-} catch (e) {
-
-console.error("水族館の読み込みに失敗しました", e);
-
-}
-
 }
 
 
@@ -566,20 +554,29 @@ bubble.classList.remove('animate-bounce');
 
 
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
+  setupVisibilityPanel();
 
-setupVisibilityPanel();  
-loadAquarium();
-startAutonomousSwimLoop();
+  await loadAquarium();
 
-// createBubbles関数がある場合は実行
+  startAutonomousSwimLoop();
 
-if (typeof createBubbles === 'function') createBubbles();
-if (typeof createLightParticles === 'function') createLightParticles();
+  if (typeof createBubbles === 'function') createBubbles();
+  if (typeof createLightParticles === 'function') createLightParticles();
 
-setupWaterRipple();
-
+  setupWaterRipple();
 });
+
+function showAquariumLoading() {
+  const el = document.getElementById('aquarium-loading');
+  if (el) el.classList.remove('hidden');
+}
+
+function hideAquariumLoading() {
+  const el = document.getElementById('aquarium-loading');
+  if (el) el.classList.add('hidden');
+}
+
 
 // =========================
 // リアル寄り：自律遊泳（swim魚用）

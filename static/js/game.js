@@ -17,6 +17,25 @@ const MAIN_SPOTS = {
     56: { name: "能登島",    icon: "🐬", labelClass: "-right-14 top-1/2 -translate-y-1/2" }
 };
 
+
+const fishImageCache = new Map();
+
+function preloadImage(src) {
+    return new Promise((resolve) => {
+        if (fishImageCache.has(src)) {
+            resolve(fishImageCache.get(src));
+            return;
+        }
+
+        const img = new Image();
+        img.onload = () => {
+            fishImageCache.set(src, img);
+            resolve(img);
+        };
+        img.onerror = () => resolve(null);
+        img.src = src;
+    });
+}
 // ------------------------------------------
 // クイズマス設定
 // 港マス以外の通常移動マスの約1/3を黄色マスにする
@@ -533,9 +552,13 @@ function clearExtraRollState() {
 let catchQueue = [];
 let caughtFishes = [];
 
-function startFishing(fishes) {
+async function startFishing(fishes) {
     caughtFishes = fishes;
     catchQueue = [...fishes];
+
+    // 先に全部の魚画像を読み込む
+    const preloadTargets = fishes.map(f => `/static/images/fish/${f.image}`);
+    await Promise.all(preloadTargets.map(src => preloadImage(src)));
 
     const overlay = document.getElementById('fishing-overlay');
     overlay.classList.remove('hidden');
@@ -548,9 +571,9 @@ function processNextCatch() {
     const lineContainer = document.getElementById('fishing-line-container');
     const line = document.getElementById('fishing-line');
     const bobber = document.getElementById('fishing-bobber');
-    const ripple = document.getElementById('fishing-ripple'); // 追加: 波紋要素を取得
+    const ripple = document.getElementById('fishing-ripple');
     const resultEl = document.getElementById('fishing-result');
-    
+
     if (catchQueue.length === 0) {
         document.getElementById('fishing-overlay').classList.add('hidden');
         document.getElementById('fishing-overlay').classList.remove('flex');
@@ -560,7 +583,12 @@ function processNextCatch() {
 
     const currentFish = catchQueue.shift();
 
-    // 演出リセット
+    // 次に表示する魚を先読み
+    if (catchQueue.length > 0) {
+        const nextFish = catchQueue[0];
+        preloadImage(`/static/images/fish/${nextFish.image}`);
+    }
+
     resultEl.classList.add('hidden');
     resultEl.classList.remove('fish-pop-animation');
 
@@ -569,14 +597,13 @@ function processNextCatch() {
 
     line.classList.remove('animate-drop-line');
     bobber.classList.remove('animate-bobber');
-    ripple.classList.remove('animate-ripple'); // 追加: 波紋アニメーションをリセット
-    
-    void line.offsetWidth; // リフロー強制
-    
+    ripple.classList.remove('animate-ripple');
+
+    void line.offsetWidth;
+
     line.classList.add('animate-drop-line');
     bobber.classList.add('animate-bobber');
-    
-    // 追加: ウキが水面に落ちるタイミング(約0.5秒後)に合わせて波紋を表示
+
     setTimeout(() => {
         ripple.classList.add('animate-ripple');
     }, 500);
@@ -584,14 +611,17 @@ function processNextCatch() {
     const waitTime = 1000 + Math.random() * 1500;
 
     setTimeout(() => {
-        // ヒット！（ウキが沈み、波紋も止める）
         bobber.classList.add('bobber-hit-animation');
-        ripple.classList.remove('animate-ripple'); // 追加: 波紋を消す
-        
+        ripple.classList.remove('animate-ripple');
+
         setTimeout(() => {
             lineContainer.classList.add('hidden');
 
-            document.getElementById('fishing-fish-img').src = `/static/images/fish/${currentFish.image}`;
+            const imgEl = document.getElementById('fishing-fish-img');
+            imgEl.decoding = "async";
+            imgEl.loading = "eager";
+            imgEl.src = `/static/images/fish/${currentFish.image}`;
+
             document.getElementById('fishing-fish-name').innerText = currentFish.name;
             document.getElementById('fishing-fish-desc').innerText = currentFish.desc;
 
@@ -600,7 +630,6 @@ function processNextCatch() {
 
             resultEl.classList.remove('hidden');
             resultEl.classList.add('flex', 'fish-pop-animation');
-
         }, 800);
     }, waitTime);
 }
